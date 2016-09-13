@@ -37,7 +37,13 @@ public:
     UFUNCTION(BlueprintPure, Category = Spawning)
     FVector GetRandomPointInVolume();
 
+    void EnableSpawning();
+
+    void DisableSpawning();
+
 private:
+
+    bool bSpawningEnabled;
 
     float GetRandomSpawnDelay();
 

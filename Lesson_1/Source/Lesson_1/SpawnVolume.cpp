@@ -28,6 +28,10 @@ void ASpawnVolume::BeginPlay()
 // Called every frame
 void ASpawnVolume::Tick( float DeltaTime )
 {
+    if (!bSpawningEnabled) {
+        return;
+    }
+
 	Super::Tick( DeltaTime );
 
     SpawnTime += DeltaTime;
@@ -94,4 +98,14 @@ FVector ASpawnVolume::GetRandomPointInVolume()
     
     // Return the random spawn location
     return RandomLocation;
+}
+
+void ASpawnVolume::EnableSpawning()
+{
+    bSpawningEnabled = true;
+}
+
+void ASpawnVolume::DisableSpawning()
+{
+    bSpawningEnabled = false;
 }

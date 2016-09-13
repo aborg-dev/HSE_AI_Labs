@@ -2,7 +2,10 @@
 
 #include "Lesson_1.h"
 #include "Lesson_1Character.h"
+#include "Lesson_1GameMode.h"
 #include "BatteryPickup.h"
+
+#include "Kismet/GameplayStatics.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ALesson_1Character
@@ -149,6 +152,11 @@ void ALesson_1Character::Tick(float DeltaSeconds)
 
 void ALesson_1Character::CollectBatteries()
 {
+    ALesson_1GameMode* MyGameMode = Cast<ALesson_1GameMode>(UGameplayStatics::GetGameMode(this));
+    if (MyGameMode->GetCurrentState() == ELesson_1PlayState::EGameOver) {
+        return;
+    }
+
     float BatteryPower = 0.0f;
 
     TArray<AActor*> CollectedActors;
