@@ -4,6 +4,7 @@
 #include "Lesson_1GameMode.h"
 #include "Lesson_1Character.h"
 #include "SpawnVolume.h"
+#include "Lesson_1HUD.h"
 
 #include "Kismet/GameplayStatics.h"
 
@@ -15,6 +16,8 @@ ALesson_1GameMode::ALesson_1GameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
+
+    HUDClass = ALesson_1HUD::StaticClass();
 
     DecayRate = 1.0f;
 }
