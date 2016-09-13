@@ -15,18 +15,39 @@ class ALesson_1Character : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
 public:
 	ALesson_1Character();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseTurnRate;
 
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Power)
+    USphereComponent* CollectionSphere;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Power)
+    float PowerLevel;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Power)
+    float SpeedFactor;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Power)
+    float BaseSpeed;
+    
+    virtual void Tick(float DeltaSeconds) override;
+
 protected:
+
+    UFUNCTION(BlueprintCallable, Category = Power)
+    void CollectBatteries();
+
+    UFUNCTION(BlueprintImplementableEvent, Category = Power)
+    void PowerUp(float BetteryPower);
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);

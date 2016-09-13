@@ -2,12 +2,23 @@
 
 #include "Lesson_1.h"
 #include "Lesson_1Character.h"
+#include "BatteryPickup.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ALesson_1Character
 
 ALesson_1Character::ALesson_1Character()
 {
+    // Initialize default power properties.
+    PowerLevel = 2000.0f;
+    SpeedFactor = 0.75f;
+    BaseSpeed = 10.0f;
+
+    // Create collection sphere and set default radius.
+    CollectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollectionSphere"));
+    CollectionSphere->SetupAttachment(RootComponent);
+    CollectionSphere->SetSphereRadius(200.0f);
+
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
@@ -50,6 +61,9 @@ void ALesson_1Character::SetupPlayerInputComponent(class UInputComponent* InputC
 	check(InputComponent);
 	InputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	InputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+    // Bind CollectPickups key mapping to call CollectBatteries function.
+    InputComponent->BindAction("CollectPickups", IE_Pressed, this, &ALesson_1Character::CollectBatteries);
 
 	InputComponent->BindAxis("MoveForward", this, &ALesson_1Character::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &ALesson_1Character::MoveRight);
@@ -124,4 +138,31 @@ void ALesson_1Character::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+void ALesson_1Character::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    GetCharacterMovement()->MaxWalkSpeed = SpeedFactor * PowerLevel + BaseSpeed;
+}
+
+void ALesson_1Character::CollectBatteries()
+{
+    float BatteryPower = 0.0f;
+
+    TArray<AActor*> CollectedActors;
+    CollectionSphere->GetOverlappingActors(CollectedActors);
+    for (int i = 0; i < CollectedActors.Num(); ++i) {
+        auto* TestBattery = Cast<ABatteryPickup>(CollectedActors[i]);
+        if (TestBattery && !TestBattery->IsPendingKill() && TestBattery->bIsActive) {
+            BatteryPower += TestBattery->PowerLevel;
+            TestBattery->bIsActive = false;
+            TestBattery->OnPickedUp();
+        }
+    }
+
+    if (BatteryPower > 0.0f) {
+        PowerUp(BatteryPower);
+    }
 }
