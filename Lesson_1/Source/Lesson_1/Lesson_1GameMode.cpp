@@ -19,7 +19,7 @@ ALesson_1GameMode::ALesson_1GameMode()
 
     HUDClass = ALesson_1HUD::StaticClass();
 
-    DecayRate = 1.0f;
+    DecayRate = 0.5f;
 }
 
 void ALesson_1GameMode::Tick(float DeltaSeconds)

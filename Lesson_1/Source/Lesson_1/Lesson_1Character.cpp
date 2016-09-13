@@ -171,6 +171,7 @@ void ALesson_1Character::CollectBatteries()
     }
 
     if (BatteryPower > 0.0f) {
+        PowerLevel += BatteryPower;
         PowerUp(BatteryPower);
     }
 }
