@@ -12,12 +12,14 @@
 
 ALesson_1Character::ALesson_1Character()
 {
-    // Initialize default power properties.
+    // Set initial power level of the character.
     PowerLevel = 2000.0f;
+
+    // Set the power-speed multiplier and base speed of the character.
     SpeedFactor = 0.75f;
     BaseSpeed = 10.0f;
 
-    // Create collection sphere and set default radius.
+    // Create collection sphere and set it's default radius.
     CollectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollectionSphere"));
     CollectionSphere->SetupAttachment(RootComponent);
     CollectionSphere->SetSphereRadius(200.0f);
@@ -147,6 +149,7 @@ void ALesson_1Character::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
+    // Character speed is bounded with BaseSpeed from below and linearly depends on the power level.
     GetCharacterMovement()->MaxWalkSpeed = SpeedFactor * PowerLevel + BaseSpeed;
 }
 
@@ -157,19 +160,25 @@ void ALesson_1Character::CollectBatteries()
         return;
     }
 
+    // Stores total collected power from one sweep of CollectBatteries call.
     float BatteryPower = 0.0f;
 
+    // First we get all the actors that are close enough to the character (overlap with CollectionSphere).
     TArray<AActor*> CollectedActors;
     CollectionSphere->GetOverlappingActors(CollectedActors);
     for (int i = 0; i < CollectedActors.Num(); ++i) {
+        // We iterate over every neighboring actor and check,
+        // whether it is a battery and it is still active.
         auto* TestBattery = Cast<ABatteryPickup>(CollectedActors[i]);
         if (TestBattery && !TestBattery->IsPendingKill() && TestBattery->bIsActive) {
+            // We found a battery and we collect it's power and deactivate it.
             BatteryPower += TestBattery->PowerLevel;
             TestBattery->bIsActive = false;
             TestBattery->OnPickedUp();
         }
     }
 
+    // Finally, if we managed to collect anything, we power up the character by the collected ammount.
     if (BatteryPower > 0.0f) {
         PowerLevel += BatteryPower;
         PowerUp(BatteryPower);
