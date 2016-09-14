@@ -7,7 +7,7 @@ Create Third Person C++ project
 In this section we will create basic class to represent pickups in our game.
 
 Steps to create new actor:
-* Create new C++ class called Pickup that is based on standard class Actor
+* Create new C++ class called `Pickup` that is based on standard class `Actor`
 * Open the code editor to implement the class
 * Note UCLASS and GENERATED_BODY macros - they allow interaction between Code and UE4 Editor
 
@@ -99,7 +99,7 @@ Note the implementation suffix - it is a base implementation of the method that 
 
 In this section we will create battery pickup class that will represent powerup that can be collected by player to obtain energy.
 
-Start by creating new C++ class BatteryPickup based on Pickup.
+Start by creating new C++ class `BatteryPickup` based on `Pickup`.
 
 Implicitly declare public constructor to be able to change its implementation
 ```c++
@@ -107,7 +107,7 @@ public:
     ABatteryPickup();
 ```
 
-Create PowerLevel field to represent battery power
+Create `PowerLevel` field to represent battery power
 
 ```c++
 // The ammount of power stored in the battery.
@@ -115,7 +115,7 @@ UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Power)
 float PoweLevel;
 ```
 
-Override base class OnPickedUp method
+Override base class `OnPickedUp` method
 
 ```c++
 // Override base class method implementation to customize the battery behavior.
@@ -151,8 +151,8 @@ There you can see two types of mappings:
 * Action Mapping - used for discrete events (e.g jumping)
 * Axis Mapping - used for continous events (e.g. movement, camera direction)
 
-Add new action mapping called CollectPickups and bind it to E key on keyboard.
-More info: https://docs.unrealengine.com/latest/INT/Gameplay/Input/
+Add new action mapping called `CollectPickups` and bind it to `E` key on keyboard.
+* Example: https://docs.unrealengine.com/latest/INT/Gameplay/Input/
 
 Next we are going to implement pickups collection for our character.
 All edits happen in file `Lesson_1Character.h`.
@@ -271,16 +271,229 @@ void ALesson_1Character::CollectBatteries()
 }
 ```
 
-### Creating the batteries representation
+### Creating the batteries real-world representation
 
-Create new blueprint BP_BatteryPickup
+Our next step would be adding actual instances of batteries to the real world and testing `CollectBatteries` function.
 
-Set static mesh to represent it. Use Rock for simplicity, later replace it with battery from ExampleContent project.
-Change collision settings to overlap with World.
+First we need to create a new blueprint that will allow us to customize C++ `BatteryPickup` class.
+Go to Content browser in UE4 editor and create new Blueprint Class called `BP_BatteryPickup` with `BatteryPickup` as a parent class.
+* Example: https://docs.unrealengine.com/latest/INT/Engine/Blueprints/UserGuide/Types/ClassBlueprint/Creation/
 
-### Implementing spawn volume
+Double-click on the created blueprint to edit it's settings.
+To add visual representation of the Battery we need to edit `PickupMesh` component of the BP_BatteryPickup. It can be found in `Components` tab.
+Choose the component and edit `Static Mesh` to point to a desired mesh.
+You can with some simple mesh that is included into the default assets, for example `SM_Rock` from the StarterContent.
+* Example: https://docs.unrealengine.com/latest/INT/Engine/Blueprints/UserGuide/Components/index.html
+
+Last step is to setup collisions profile for the specified mesh. For this double-click the Static Mesh and go to `Collision` menu.
+* Example: https://docs.unrealengine.com/latest/INT/Engine/Physics/Collision/HowTo/index.html
+
+After this drag a `BP_BatteryPickup` object and add it to the level. You should see new object with specified Static Mesh appearning in the level.
+Go to Play mode and try to collect the Battery by reaching it at pressing `E` key.
+
+### Implementing random battery spawning
 
 In this section we will create a volume that will spawn batteries at random locations of the map.
+
+We start by creating new C++ class `SpawnVolume` that will represent a box that will spawn batteries at random periods of time and drop them on the map.
+First lets declare all needed fields in file `SpawnVolume.h`.
+In the public section we will need the set of default methods
+```c++
+// Sets default values for this actor's properties
+ASpawnVolume();
+
+// Called when the game starts or when spawned
+virtual void BeginPlay() override;
+
+// Called every frame
+virtual void Tick( float DeltaSeconds ) override;
+```
+
+Our volume will be described with the box where the actual spawning should happen
+and with the type of `Pickup` that should be spawned
+```c++
+// Box that represents the volume where random spawning will happen.
+UPROPERTY(VisibleInstanceOnly, Category = Spawning)
+UBoxComponent* WhereToSpawn;
+
+// Type of pickup that will be spawned in the volume.
+UPROPERTY(EditAnywhere, Category = Spawning)
+TSubclassOf<class APickup> WhatToSpawn;
+```
+
+We would also like to control the periodicity of spawning by chosing it as a random number in specified interval [Low, High]
+```c++
+// Minimum spawning delay.
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spawning)
+float SpawnDelayRangeLow;
+
+// Maximum spawning delay.
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spawning)
+float SpawnDelayRangeHigh;
+```
+
+Finally we declare the helper function that will generate random point in the box
+```c++
+// Returns a random point that is located in box specified by WhereToSpawn.
+UFUNCTION(BlueprintPure, Category = Spawning)
+FVector GetRandomPointInVolume();
+```
+
+Moving to private section we start with a helper function for generating random spawn delay and a variable to store generated value
+```c++
+// Returns a random float in the interval [SpawnDelayRangeLow, SpawnDelayRangeHigh].
+float GetRandomSpawnDelay();
+
+// Stores spawn delay for current episode.
+float SpawnDelay;
+```
+
+We also need to track how much time have passed since the last spawn event to be able to decide whether we need to invoke spawn now
+```c++
+// Timer for the spawn of the pickup.
+float SpawnTime;
+```
+
+The implementation of actual spawn event will happen in function `SpawnPickup` that will be invoked in `Tick` with some periodicity
+```c++
+// Spawns pickup at random location.
+void SpawnPickup();
+```
+
+We continue by implementing declared methods in `SpawnVolume.cpp`.
+
+Start with the constuctor or `SpawnVolume`, create box component and set default values to `SpawnDelayRange` properties
+```c++
+// Sets default values
+ASpawnVolume::ASpawnVolume()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+    // Create box component and make it the root of the actor.
+    WhereToSpawn = CreateDefaultSubobject<UBoxComponent>(TEXT("WhereToSpawn"));
+    RootComponent = WhereToSpawn;
+
+    // Set default values to SpawnDelayRange.
+    SpawnDelayRangeLow = 1.0f;
+    SpawnDelayRangeHigh = 4.5f;
+
+    // Generate first spawn delay from the specified range.
+    SpawnDelay = GetRandomSpawnDelay();
+}
+```
+
+Then implement the `Tick` function to monitor current time and invoke `SpawnPickup` method when `SpawnDelay` time passes
+```c++
+// Called every frame
+void ASpawnVolume::Tick( float DeltaTime )
+{
+    // We don't need to spawn anything if the volume spawning is disabled.
+    if (!bSpawningEnabled) {
+        return;
+    }
+
+	Super::Tick( DeltaTime );
+
+    // Increment current spawn wait time.
+    SpawnTime += DeltaTime;
+    // If it is larger than specified spawn delay proceed to spawning an object.
+    bool bShouldSpawn = SpawnTime > SpawnDelay;
+    if (bShouldSpawn) {
+        // Do actual spawning.
+        SpawnPickup();
+        // Decrement wait time to account for overflows.
+        SpawnTime -= SpawnDelay;
+        // Generate new spawn delay that will be used for the next spawning.
+        SpawnDelay = GetRandomSpawnDelay();
+    }
+}
+```
+
+Implement `SpawnPickup` by generating random point and spawning an object there.
+```c++
+void ASpawnVolume::SpawnPickup()
+{
+    // If no Pickup is specified, ignore SpawnPickup.
+    if (!WhatToSpawn) {
+        return;
+    }
+
+    UWorld* const World = GetWorld();
+    // If the world is not available, ignore SpawnPickup.
+    if (!World) {
+        return;
+    }
+
+    // Specify spawn parameters.
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Owner = this;
+    SpawnParams.Instigator = Instigator;
+
+    // Generate random location and random rotation for the spawned object.
+    FVector SpawnLocation = GetRandomPointInVolume();
+    FRotator SpawnRotation;
+    SpawnRotation.Yaw = FMath::FRand() * 360.f;
+    SpawnRotation.Pitch = FMath::FRand() * 360.f;
+    SpawnRotation.Roll = FMath::FRand() * 360.f;
+
+    // Spawn the Pickup in random location in the world.
+    APickup* const SpawnedPickup = World->SpawnActor<APickup>(WhatToSpawn, SpawnLocation, SpawnRotation, SpawnParams);
+}
+```
+
+Implement function to generate random spawn delay
+```c++
+float ASpawnVolume::GetRandomSpawnDelay()
+{
+    // Generate random float from interval [SpawnDelayRangeLow, SpawnDelayRangeHigh].
+    return FMath::FRandRange(SpawnDelayRangeLow, SpawnDelayRangeHigh);
+}
+```
+
+Finally implement the function to generate random point in the volume
+```c++
+FVector ASpawnVolume::GetRandomPointInVolume()
+{
+    FVector RandomLocation;
+    float MinX, MinY, MinZ;
+    float MaxX, MaxY, MaxZ;
+
+    FVector Origin;
+    FVector BoxExtent;
+
+    // Get the SpawnVolume's origin and box extent
+    Origin = WhereToSpawn->Bounds.Origin;
+    BoxExtent = WhereToSpawn->Bounds.BoxExtent;
+
+    // Calculate the minimum X, Y, and Z
+    MinX = Origin.X - BoxExtent.X / 2.f;
+    MinY = Origin.Y - BoxExtent.Y / 2.f;
+    MinZ = Origin.Z - BoxExtent.Z / 2.f;
+
+    // Calculate the maximum X, Y, and Z
+    MaxX = Origin.X + BoxExtent.X / 2.f;
+    MaxY = Origin.Y + BoxExtent.Y / 2.f;
+    MaxZ = Origin.Z + BoxExtent.Z / 2.f;
+
+    // The random spawn location will fall between the min and max X, Y, and Z
+    RandomLocation.X = FMath::FRandRange(MinX, MaxX);
+    RandomLocation.Y = FMath::FRandRange(MinY, MaxY);
+    RandomLocation.Z = FMath::FRandRange(MinZ, MaxZ);
+
+    // Return the random spawn location
+    return RandomLocation;
+}
+```
+
+Now our `SpawnVolume` is ready to be added to the world. Create it by dragging C++ class into the level.
+You will definitely want to change the Location and Scale of `WhereToSpawn` box of `SpawnVolume`.
+This can be done in `Details` tab of the created object.
+* Example: https://wiki.unrealengine.com/Introduction_to_the_UE4_Editor_-_6_-_Moving_Objects
+* Example: https://wiki.unrealengine.com/Introduction_to_the_UE4_Editor_-_8_-_Scaling_Objects
+
+You also need to set `WhatToSpawn` property of the `SpawnVolume` to be `BP_BatteryPickup` 
+Run Play and verify that batteries are indeed spawned!
 
 ### Implement game modes
 
