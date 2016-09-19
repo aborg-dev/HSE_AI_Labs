@@ -500,6 +500,224 @@ Run Play and verify that batteries are indeed spawned!
 In this section we will implement game modes: game will end when the player reaches zero energy level.
 At this point spawning will stop and player camera will be freezed.
 
+We start in file `Lesson_1GameMode.h`.
+First we need a way to store current state of the game, for this we define the following enumeration outside of the `GameMode` class:
+```c++
+// Enum to represent current game state.
+enum class ELesson_1PlayState : short
+{
+    EPlaying,  // set when the game is active
+    EGameOver, // set when the game is over
+    EUnknown   // default value
+};
+```
+
+And then add corresponding methods to game strategy to store and change current game state:
+```c++
+public:
+    // Returns current game state.
+    ELesson_1PlayState GetCurrentState() const;
+
+    // Sets game state to new value.
+    void SetCurrentState(ELesson_1PlayState NewState);
+
+private:
+    // Stores current game state.
+    ELesson_1PlayState CurrentState;
+
+    // Handles game state changes.
+    void HandleNewState(ELesson_1PlayState NewState);
+```
+
+We also need to override game mode public method `BeginPlay()` that is called when the game starts
+```c++
+// Initializes game logic when game starts.
+virtual void BeginPlay() override;
+```
+
+And add the code that will ensure decay of the character power
+```c++
+// Override the method to decrease character power on every tick.
+virtual void Tick(float DeltaSeconds) override;
+
+// Defines how much the power of the character will be drained with time.
+UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Power)
+float DecayRate;
+```
+
+Finally, let's add auxiliary private field that will help us to freeze battery spawning when the game is over
+```c++
+// Stores all SpawnVolume actors on the level to allow fast access.
+TArray<ASpawnVolume*> SpawnVolumeActors;
+```
+
+We also need to add forward declaration of `ASpawnVolume` class outside of `GameMode` class to be able to store pointers to it
+```c++
+class ASpawnVolume;
+```
+
+Now we move to `Lesson_1GameMode.cpp` to implement declared methods.
+
+First we initialize the default value of decay rate in the constructor of `GameMode`
+```c++
+ALesson_1GameMode::ALesson_1GameMode()
+{
+    ...
+    // Initialize default value of decay rate.
+    DecayRate = 0.5f;
+}
+```
+
+Next we need to implement the `Tick` function to decay player power level or move the game to finish state when player power is too low
+```c++
+void ALesson_1GameMode::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    ALesson_1Character* MyCharacter = Cast<ALesson_1Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+    if (MyCharacter->PowerLevel > 0.05) {
+        MyCharacter->PowerLevel = FMath::FInterpTo(MyCharacter->PowerLevel, 0, DeltaSeconds, DecayRate);
+    } else {
+        SetCurrentState(ELesson_1PlayState::EGameOver);
+    }
+}
+```
+
+When the game is started we need to remember all SpawnVolume actors and to transition the game into `EPlaying` state
+```c++
+void ALesson_1GameMode::BeginPlay()
+{
+    // Don't forget to call parent BeginPlay() method.
+    Super::BeginPlay();
+
+    // Find all SpawnVolume actors.
+    TArray<AActor*> FoundActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnVolume::StaticClass(), FoundActors);
+    for (auto Actor : FoundActors) {
+        ASpawnVolume* SpawnVolumeActor = Cast<ASpawnVolume>(Actor);
+        // If the actor indeed belongs to SpawnVolume, remember it.
+        if (SpawnVolumeActor) {
+            SpawnVolumeActors.Add(SpawnVolumeActor);
+        }
+    }
+    // Transition the game into playing state.
+    SetCurrentState(ELesson_1PlayState::EPlaying);
+}
+```
+
+We also implement auxiliary methods to get and set game state
+```c++
+ELesson_1PlayState ALesson_1GameMode::GetCurrentState() const
+{
+    return CurrentState;
+}
+
+void ALesson_1GameMode::SetCurrentState(ELesson_1PlayState NewState)
+{
+    CurrentState = NewState;
+    // Invoke the actions associated with transitioning to new state.
+    HandleNewState(CurrentState);
+}
+```
+
+Finally we describe how transition to each state happens.
+When we start the game we want to activate all SpawnVolumes to start spawning batteries.
+When game finishes we turn off all SpawnVolumes and take control from the player by putting the camera into cinematic mode.
+```c++
+void ALesson_1GameMode::HandleNewState(ELesson_1PlayState NewState)
+{
+    switch (NewState) {
+        case ELesson_1PlayState::EPlaying:
+        {
+            // Turn on all spawn volumes to start creating new batteries.
+            for (ASpawnVolume* Volume : SpawnVolumeActors) {
+                Volume->EnableSpawning();
+            }
+            break;
+        }
+        case ELesson_1PlayState::EGameOver:
+        {
+            // When the game is finished turn off all spawn volumes.
+            for (ASpawnVolume* Volume : SpawnVolumeActors) {
+                Volume->DisableSpawning();
+            }
+            // Take control from the player and put camera into cinematic mode.
+            APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+            PlayerController->SetCinematicMode(true, true, true);
+            break;
+        }
+        case ELesson_1PlayState::EUnknown:
+        default:
+            break;
+    }
+}
+```
+
+Note that we used unimplemented functions `EnableSpawning` and `DisableSpawning` of `SpawnVolume`.
+Let's go and fix this!
+We start by editing `SpawnVolume.h` and adding two public methods and a private field
+```c++
+public:
+    // Enables spawning.
+    void EnableSpawning();
+
+    // Disables spawning.
+    void DisableSpawning();
+
+private:
+    // True if spawning is enabled, false otherwise.
+    bool bSpawningEnabled;
+```
+
+Then in `SpawnVolume.cpp` we implement this methods
+```c++
+void ASpawnVolume::EnableSpawning()
+{
+    bSpawningEnabled = true;
+}
+
+void ASpawnVolume::DisableSpawning()
+{
+    bSpawningEnabled = false;
+}
+```
+
+And also modify the `Tick` function to disable spawning when flag is set to false
+```c++
+void ASpawnVolume::Tick( float DeltaTime )
+{
+    // We don't need to spawn anything if the volume spawning is disabled.
+    if (!bSpawningEnabled) {
+        return;
+    }
+    ...
+}
+```
+
+Finally, we will change the character code to disable battery collection when the game is over.
+For this add the following lines in `Lesson_1Character.cpp` in the beginning `CollectBatteries` function
+```
+void ALesson_1Character::CollectBatteries()
+{
+    // Don't collect batteries when the game is over.
+    ALesson_1GameMode* MyGameMode = Cast<ALesson_1GameMode>(UGameplayStatics::GetGameMode(this));
+    if (MyGameMode->GetCurrentState() == ELesson_1PlayState::EGameOver) {
+        return;
+    }
+    ...
+}
+```
+
+And also include the following headers for C++ to resolve used classes
+```c++
+#include "Lesson_1GameMode.h"
+
+#include "Kismet/GameplayStatics.h"
+```
+
+Now build and run the game to verify that the player power level decay works (player should move slower with time)
+and also that the game transitions to game over state when the player becomes really slow.
+
 ### Implement HUD
 
 In this section we will implement text interface to display current power lowel and also show Game Over message in the end of the game.

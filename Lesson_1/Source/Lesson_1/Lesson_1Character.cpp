@@ -155,6 +155,7 @@ void ALesson_1Character::Tick(float DeltaSeconds)
 
 void ALesson_1Character::CollectBatteries()
 {
+    // Don't collect batteries when the game is over.
     ALesson_1GameMode* MyGameMode = Cast<ALesson_1GameMode>(UGameplayStatics::GetGameMode(this));
     if (MyGameMode->GetCurrentState() == ELesson_1PlayState::EGameOver) {
         return;
