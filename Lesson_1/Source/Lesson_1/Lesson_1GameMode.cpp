@@ -17,6 +17,7 @@ ALesson_1GameMode::ALesson_1GameMode()
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
 
+    // Set the default HUD class to be used in game.
     HUDClass = ALesson_1HUD::StaticClass();
 
     // Initialize default value of decay rate.

@@ -15,10 +15,11 @@ class LESSON_1_API ALesson_1HUD : public AHUD
 
 public:
     ALesson_1HUD();
-	
-	UPROPERTY()
+
+    // Store the font used for messages.
+    UPROPERTY()
     UFont* HUDFont;
 
+    // Override draw function to show custom messages.
     virtual void DrawHUD() override;
-	
 };

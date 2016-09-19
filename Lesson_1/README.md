@@ -721,3 +721,78 @@ and also that the game transitions to game over state when the player becomes re
 ### Implement HUD
 
 In this section we will implement text interface to display current power lowel and also show Game Over message in the end of the game.
+
+To do this we start by adding a new C++ class inherited from HUD.
+Now we edit `Lesson_1HUD.h` and add the variable to store the font for the messages
+```c++
+// Store the font used for messages.
+UPROPERTY()
+UFont* HUDFont;
+```
+
+And overriding the `DrawHUD` function to support custom behavior
+```c++
+// Override draw function to show custom messages.
+virtual void DrawHUD() override;
+```
+
+In `Lesson_1HUD.cpp` we include a set of required headers
+```c++
+#include "Lesson_1GameMode.h"
+#include "Lesson_1Character.h"
+
+#include "Kismet/GameplayStatics.h"
+
+#include "Engine/Canvas.h"
+#include "Engine/Font.h"
+```
+
+And then specify the constructor for our HUD to load font from the standard library
+```c++
+ALesson_1HUD::ALesson_1HUD()
+{
+    //Use the RobotoDistanceField font from the engine
+    static ConstructorHelpers::FObjectFinder<UFont>HUDFontOb(TEXT("/Engine/EngineFonts/RobotoDistanceField"));
+    HUDFont = HUDFontOb.Object;
+}
+```
+
+We proceed with implementing `DrawHUD` function that prints character current power level and also shows "Game Over" message when the game is in final state.
+```c++
+void ALesson_1HUD::DrawHUD()
+{
+    // Get the screen dimensions.
+    FVector2D ScreenDimensions = FVector2D(Canvas->SizeX, Canvas->SizeY);
+
+    // Call to the parent versions of DrawHUD.
+    Super::DrawHUD();
+
+    // Get the character and print its power level.
+    ALesson_1Character* MyCharacter = Cast<ALesson_1Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+    FString PowerLevelString = FString::Printf(TEXT("%10.1f"), FMath::Abs(MyCharacter->PowerLevel));
+    DrawText(PowerLevelString, FColor::White, 50, 50, HUDFont);
+
+    ALesson_1GameMode* MyGameMode = Cast<ALesson_1GameMode>(UGameplayStatics::GetGameMode(this));
+    // If the game is over.
+    if (MyGameMode->GetCurrentState() == ELesson_1PlayState::EGameOver)
+    {
+        // Create a variable for storing the size of printing Game Over.
+        FVector2D GameOverSize;
+        GetTextSize(TEXT("GAME OVER"), GameOverSize.X, GameOverSize.Y, HUDFont);
+        DrawText(TEXT("GAME OVER"), FColor::White, (ScreenDimensions.X - GameOverSize.X) / 2.0f, (ScreenDimensions.Y - GameOverSize.Y) / 2.0f, HUDFont);
+    }
+}
+```
+
+To activate the HUD we need to add the following lines to the constructor in `Lesson_1GameMode.cpp`
+```c++
+ALesson_1GameMode::ALesson_1GameMode()
+{
+    ...
+    // Set the default HUD class to be used in game.
+    HUDClass = ALesson_1HUD::StaticClass();
+    ...
+}
+```
+
+To test our HUD we build and run the project and check that power level is shown on the screen and that when the game finishes we get "Game Over" message.
