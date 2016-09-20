@@ -3,6 +3,8 @@
 #include "GameFramework/Character.h"
 #include "Lab_1Character.generated.h"
 
+class AHouseActor;
+
 UCLASS(Blueprintable)
 class ALab_1Character : public ACharacter
 {
@@ -19,6 +21,19 @@ public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Delivery)
+    int PizzaCapacity;
+
+    int GetPizzaCapacity() const;
+
+    int GetPizzaAmount() const;
+
+    // Tries to get pizza from pizza storage. Returns true on success and false otherwise.
+    bool TryGrabPizza();
+
+    // Tries to deliver pizza to specified house. Returns true on success and false otherwise.
+    bool TryDeliverPizza(AHouseActor* HouseActor);
+
 private:
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -28,8 +43,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
-	/** A decal that projects to the cursor location. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UDecalComponent* CursorToWorld;
+    /** Area where actor can deliver pizza */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Delivery, meta = (AllowPrivateAccess = "true"))
+    class USphereComponent* DeliverySphere;
+
+    int PizzaAmount;
 };
 
