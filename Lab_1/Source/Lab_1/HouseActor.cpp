@@ -33,6 +33,9 @@ AHouseActor::AHouseActor()
     }
 
     bWaitsPizzaDelivery = false;
+
+    MaxWaitTime = 10.0f;
+    bTimeoutReached = false;
 }
 
 // Called when the game starts or when spawned
@@ -47,6 +50,12 @@ void AHouseActor::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
+    if (bWaitsPizzaDelivery) {
+        CurrentWaitTime += DeltaTime;
+        if (CurrentWaitTime > MaxWaitTime) {
+            bTimeoutReached = true;
+        }
+    }
 }
 
 bool AHouseActor::WaitsPizzaDelivery() const
@@ -72,4 +81,9 @@ void AHouseActor::TogglePizzaDeliveryHighlight()
     {
         PizzaDeliveryHighlightComponent->ToggleActive();
     }
+}
+
+bool AHouseActor::TimeoutReached() const
+{
+    return bTimeoutReached;
 }

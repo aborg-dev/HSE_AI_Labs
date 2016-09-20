@@ -40,7 +40,16 @@ public:
     UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = House)
     UParticleSystemComponent *PizzaDeliveryHighlightComponent;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Delivery)
+    float MaxWaitTime;
+
+    bool TimeoutReached() const;
+
 private:
     // Is true if house ordered some delivery.
     bool bWaitsPizzaDelivery;
+
+    float CurrentWaitTime;
+
+    bool bTimeoutReached;
 };

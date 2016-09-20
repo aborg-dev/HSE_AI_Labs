@@ -52,24 +52,23 @@ void ALab_1GameMode::BeginPlay()
     SetCurrentState(ELab_1PlayState::EPlaying);
 }
 
-ELab_1PlayState ALesson_1GameMode::GetCurrentState() const
+ELab_1PlayState ALab_1GameMode::GetCurrentState() const
 {
     return CurrentState;
 }
 
-void ALesson_1GameMode::SetCurrentState(ELab_1PlayState NewState)
+void ALab_1GameMode::SetCurrentState(ELab_1PlayState NewState)
 {
     CurrentState = NewState;
     // Invoke the actions associated with transitioning to new state.
     HandleNewState(CurrentState);
 }
 
-void ALesson_1GameMode::HandleNewState(ELab_1PlayState NewState)
+void ALab_1GameMode::HandleNewState(ELab_1PlayState NewState)
 {
     switch (NewState) {
         case ELab_1PlayState::EPlaying:
         {
-            // Turn on all spawn volumes to start creating new batteries.
             break;
         }
         case ELab_1PlayState::EGameOver:
@@ -89,12 +88,21 @@ void ALab_1GameMode::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    if (CurrentState == ELab_1PlayState::EPlaying) {
-        SpawnPizzaTimer += DeltaSeconds;
-        if (SpawnPizzaTimer > SpawnDelay) {
-            SpawnPizza();
-            SpawnPizzaTimer -= SpawnDelay;
+    if (CurrentState == ELab_1PlayState::EGameOver) {
+        return;
+    }
+
+    for (auto House : HouseActors) {
+        if (House->TimeoutReached()) {
+            SetCurrentState(ELab_1PlayState::EGameOver);
+            return;
         }
+    }
+
+    SpawnPizzaTimer += DeltaSeconds;
+    if (SpawnPizzaTimer > SpawnDelay) {
+        SpawnPizza();
+        SpawnPizzaTimer -= SpawnDelay;
     }
 }
 

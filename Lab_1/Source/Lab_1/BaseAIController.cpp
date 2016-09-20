@@ -62,10 +62,9 @@ bool ABaseAIController::TryDeliverPizza(int OrderNumber)
 {
     auto* MyGameMode = GetGameMode();
     if (MyGameMode->GetCurrentState() == ELab_1PlayState::EGameOver) {
-        return;
+        return false;
     }
 
-    auto* MyGameMode = GetGameMode();
     auto* Character = GetCharacter();
     if (!Character) {
         UE_LOG(LogTemp, Warning, TEXT("Failed delivering %d, character is dead"), OrderNumber);
