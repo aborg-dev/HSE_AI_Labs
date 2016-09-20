@@ -135,6 +135,7 @@ void ALab_1GameMode::SpawnPizza()
     int HouseIndex = RandomStream.RandRange(0, HouseActorsNotWaitingDelivery.Num() - 1);
     auto Actor = HouseActorsNotWaitingDelivery[HouseIndex];
     int RealHouseIndex = RealIndices[HouseIndex];
+
     int OrderNumber = TotalPizzaOrderCount++;
     PizzaOrders.Add(FPizzaOrder(OrderNumber, RealHouseIndex, 1));
     UE_LOG(LogTemp, Warning, TEXT("Spawning pizza at %d"), RealHouseIndex);

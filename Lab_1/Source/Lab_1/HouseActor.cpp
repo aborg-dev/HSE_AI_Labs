@@ -72,6 +72,7 @@ void AHouseActor::OrderPizzaDelivery()
 void AHouseActor::OnPizzaDelivered()
 {
     bWaitsPizzaDelivery = false;
+    CurrentWaitTime = 0;
     TogglePizzaDeliveryHighlight();
 }
 
