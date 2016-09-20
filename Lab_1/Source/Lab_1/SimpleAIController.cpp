@@ -36,7 +36,18 @@ void ASimpleAIController::Tick(float DeltaSeconds)
     }
 
     // Take first order.
-    auto Order = Orders[0];
+    auto HouseLocations = GetHouseLocations();
+
+    int closestOrder = 0;
+    float closestDistance = GetDistanceToDestination(HouseLocations[Orders[0].HouseNumber]);
+    for (int i = 0; i < Orders.Num(); ++i) {
+        float currentDistance = GetDistanceToDestination(HouseLocations[Orders[i].HouseNumber]);
+        if (currentDistance < closestDistance) {
+            closestDistance = currentDistance;
+            closestOrder = i;
+        }
+    }
+    auto Order = Orders[closestOrder];
 
     int PizzaAmount = GetPizzaAmount();
     if (PizzaAmount == 0) {
@@ -47,7 +58,7 @@ void ASimpleAIController::Tick(float DeltaSeconds)
         }
     }
 
-    auto HouseLocation = GetHouseLocations()[Order.HouseNumber];
+    auto HouseLocation = HouseLocations[Order.HouseNumber];
     bDeliveringOrder = true;
     CurrentOrderNumber = Order.OrderNumber;
     CurrentDestination = HouseLocation;

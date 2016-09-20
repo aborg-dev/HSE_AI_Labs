@@ -50,6 +50,8 @@ public:
     // Sets game state to new value.
     void SetCurrentState(ELab_1PlayState NewState);
 
+    float GetHouseTimeLeft(int HouseNumber);
+
 private:
     TArray<AHouseActor*> HouseActors;
     TArray<FVector> HouseLocations;

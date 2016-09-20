@@ -16,11 +16,11 @@ ALab_1Character::ALab_1Character()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
-	GetCharacterMovement()->bConstrainToPlane = true;
-	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+    // Configure character movement
+    GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction
+    GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
+    GetCharacterMovement()->bConstrainToPlane = true;
+    GetCharacterMovement()->bSnapToPlaneAtStart = true;
 
     // Create collection sphere and set it's default radius.
     DeliverySphere = CreateDefaultSubobject<USphereComponent>(TEXT("DeliverySphere"));

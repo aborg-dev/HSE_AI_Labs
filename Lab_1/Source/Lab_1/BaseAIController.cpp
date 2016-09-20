@@ -121,3 +121,9 @@ ALab_1Character* ABaseAIController::GetCharacter()
     return Character;
 }
 
+float ABaseAIController::GetHouseTimeLeft(int HouseNumber)
+{
+    auto* MyGameMode = GetGameMode();
+    return MyGameMode->GetHouseTimeLeft(HouseNumber);
+}
+

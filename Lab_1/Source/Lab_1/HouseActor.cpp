@@ -87,3 +87,8 @@ bool AHouseActor::TimeoutReached() const
 {
     return bTimeoutReached;
 }
+
+float AHouseActor::GetTimeLeft() const
+{
+    return MaxWaitTime - CurrentWaitTime;
+}

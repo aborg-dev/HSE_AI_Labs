@@ -42,6 +42,8 @@ protected:
 
     int GetPizzaCapacity();
 
+    float GetHouseTimeLeft(int HouseNumber);
+
 private:
     ALab_1GameMode* GetGameMode();
 

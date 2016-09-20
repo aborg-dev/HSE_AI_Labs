@@ -29,6 +29,8 @@ public:
 
     void TogglePizzaDeliveryHighlight();
 
+    float GetTimeLeft() const;
+
     // Component for handling collisions.
     UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = House)
     USphereComponent* BaseCollisionComponent;

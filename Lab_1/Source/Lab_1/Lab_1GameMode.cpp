@@ -192,3 +192,8 @@ bool ALab_1GameMode::TryDeliverPizza(ALab_1Character* Character, int OrderNumber
     }
     return bDelivered;
 }
+
+float ALab_1GameMode::GetHouseTimeLeft(int HouseNumber)
+{
+    return HouseActors[HouseNumber]->GetTimeLeft();
+}
