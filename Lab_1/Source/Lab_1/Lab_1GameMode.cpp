@@ -48,16 +48,53 @@ void ALab_1GameMode::BeginPlay()
 
     SpawnPizzaTimer = 0.0f;
     RandomStream.Initialize(42);
+    // Transition the game into playing state.
+    SetCurrentState(ELab_1PlayState::EPlaying);
+}
+
+ELab_1PlayState ALesson_1GameMode::GetCurrentState() const
+{
+    return CurrentState;
+}
+
+void ALesson_1GameMode::SetCurrentState(ELab_1PlayState NewState)
+{
+    CurrentState = NewState;
+    // Invoke the actions associated with transitioning to new state.
+    HandleNewState(CurrentState);
+}
+
+void ALesson_1GameMode::HandleNewState(ELab_1PlayState NewState)
+{
+    switch (NewState) {
+        case ELab_1PlayState::EPlaying:
+        {
+            // Turn on all spawn volumes to start creating new batteries.
+            break;
+        }
+        case ELab_1PlayState::EGameOver:
+        {
+            // Take control from the player and put camera into cinematic mode.
+            APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+            PlayerController->SetCinematicMode(true, true, true);
+            break;
+        }
+        case ELab_1PlayState::EUnknown:
+        default:
+            break;
+    }
 }
 
 void ALab_1GameMode::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    SpawnPizzaTimer += DeltaSeconds;
-    if (SpawnPizzaTimer > SpawnDelay) {
-        SpawnPizza();
-        SpawnPizzaTimer -= SpawnDelay;
+    if (CurrentState == ELab_1PlayState::EPlaying) {
+        SpawnPizzaTimer += DeltaSeconds;
+        if (SpawnPizzaTimer > SpawnDelay) {
+            SpawnPizza();
+            SpawnPizzaTimer -= SpawnDelay;
+        }
     }
 }
 
@@ -76,7 +113,7 @@ void ALab_1GameMode::SpawnPizza()
     TArray<AHouseActor*> HouseActorsNotWaitingDelivery;
     TArray<int> RealIndices;
     for (int Index = 0; Index < HouseActors.Num(); ++Index) {
-        auto& Actor = HouseActors[Index];
+        auto Actor = HouseActors[Index];
         if (!Actor->WaitsPizzaDelivery()) {
             HouseActorsNotWaitingDelivery.Add(Actor);
             RealIndices.Add(Index);

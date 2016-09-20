@@ -30,4 +30,13 @@ void APizzaHUD::DrawHUD()
     GetTextSize(PendingPizzaOrderCountString, PendingSize.X, PendingSize.Y, HUDFont);
     DrawText(PendingPizzaOrderCountString, FColor::White, 30, 30, HUDFont);
     DrawText(DeliveledPizzaOrderCountString, FColor::White, 30, 30 + PendingSize.Y + 5, HUDFont);
+
+    // If the game is over.
+    if (MyGameMode->GetCurrentState() == ELab_1PlayState::EGameOver)
+    {
+        // Create a variable for storing the size of printing Game Over.
+        FVector2D GameOverSize;
+        GetTextSize(TEXT("GAME OVER"), GameOverSize.X, GameOverSize.Y, HUDFont);
+        DrawText(TEXT("GAME OVER"), FColor::White, (ScreenDimensions.X - GameOverSize.X) / 2.0f, (ScreenDimensions.Y - GameOverSize.Y) / 2.0f, HUDFont);
+    }
 }

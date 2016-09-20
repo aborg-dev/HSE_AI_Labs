@@ -19,6 +19,11 @@ void ABaseAIController::Tick(float DeltaSeconds)
 
 void ABaseAIController::SetNewMoveDestination(const FVector DestLocation)
 {
+    auto* MyGameMode = GetGameMode();
+    if (MyGameMode->GetCurrentState() == ELab_1PlayState::EGameOver) {
+        return;
+    }
+
 	APawn* const Pawn = GetPawn();
 	if (Pawn)
 	{
@@ -55,6 +60,11 @@ bool ABaseAIController::TryGrabPizza()
 
 bool ABaseAIController::TryDeliverPizza(int OrderNumber)
 {
+    auto* MyGameMode = GetGameMode();
+    if (MyGameMode->GetCurrentState() == ELab_1PlayState::EGameOver) {
+        return;
+    }
+
     auto* MyGameMode = GetGameMode();
     auto* Character = GetCharacter();
     if (!Character) {

@@ -7,6 +7,14 @@
 class AHouseActor;
 class ALab_1Character;
 
+// Enum to represent current game state.
+enum class ELab_1PlayState : short
+{
+    EPlaying,  // set when the game is active
+    EGameOver, // set when the game is over
+    EUnknown   // default value
+};
+
 UCLASS(minimalapi)
 class ALab_1GameMode : public AGameMode
 {
@@ -36,6 +44,12 @@ public:
 
     int GetDeliveredPizzaOrderCount() const;
 
+    // Returns current game state.
+    ELab_1PlayState GetCurrentState() const;
+
+    // Sets game state to new value.
+    void SetCurrentState(ELab_1PlayState NewState);
+
 private:
     TArray<AHouseActor*> HouseActors;
     TArray<FVector> HouseLocations;
@@ -54,6 +68,12 @@ private:
     void SpawnPizza();
 
     FRandomStream RandomStream;
+
+    // Stores current game state.
+    ELab_1PlayState CurrentState;
+
+    // Handles game state changes.
+    void HandleNewState(ELab_1PlayState NewState);
 
 };
 
