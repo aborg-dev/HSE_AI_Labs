@@ -41,8 +41,7 @@ AHouseActor::AHouseActor()
 // Called when the game starts or when spawned
 void AHouseActor::BeginPlay()
 {
-	Super::BeginPlay();
-	
+    Super::BeginPlay();
 }
 
 // Called every frame
@@ -65,12 +64,20 @@ bool AHouseActor::WaitsPizzaDelivery() const
 
 void AHouseActor::OrderPizzaDelivery()
 {
+    if (bWaitsPizzaDelivery) {
+        UE_LOG(LogTemp, Warning, TEXT("House already waits for delivery!"));
+    }
+
     bWaitsPizzaDelivery = true;
     TogglePizzaDeliveryHighlight();
 }
 
 void AHouseActor::OnPizzaDelivered()
 {
+    if (!bWaitsPizzaDelivery) {
+        UE_LOG(LogTemp, Warning, TEXT("House doesn't wait for delivery!"));
+    }
+
     bWaitsPizzaDelivery = false;
     CurrentWaitTime = 0;
     TogglePizzaDeliveryHighlight();

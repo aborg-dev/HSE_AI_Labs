@@ -73,7 +73,7 @@ bool ABaseAIController::TryDeliverPizza(int OrderNumber)
     return MyGameMode->TryDeliverPizza(Character, OrderNumber);
 }
 
-const TArray<FVector>& ABaseAIController::GetHouseLocations()
+TArray<FVector> ABaseAIController::GetHouseLocations()
 {
     auto* MyGameMode = GetGameMode();
     return MyGameMode->GetHouseLocations();

@@ -33,7 +33,7 @@ protected:
     bool TryGrabPizza();
 
     // Returns locations of all houses in the level.
-    const TArray<FVector>& GetHouseLocations();
+    TArray<FVector> GetHouseLocations();
 
     // Returns currently active pizza orders.
     TArray<FPizzaOrder> GetPizzaOrders();

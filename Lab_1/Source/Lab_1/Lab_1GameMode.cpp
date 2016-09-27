@@ -39,12 +39,15 @@ void ALab_1GameMode::BeginPlay()
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AHouseActor::StaticClass(), FoundActors);
     for (auto Actor : FoundActors) {
         AHouseActor* HouseActor = Cast<AHouseActor>(Actor);
-        // If the actor indeed belongs to SpawnVolume, remember it.
+        // If the actor indeed belongs to HouseActor, remember it.
         if (HouseActor) {
-            HouseActors.Add(HouseActor);
-            HouseLocations.Add(HouseActor->GetActorLocation());
+            Houses.Emplace(HouseActor, HouseActor->GetActorLocation(), HouseActor->GetName());
         }
     }
+    UE_LOG(LogTemp, Warning, TEXT("Registered %d houses"), Houses.Num());
+    Houses.Sort([] (const House& lhs, const House& rhs) {
+        return lhs.Name < rhs.Name;
+    });
 
     SpawnPizzaTimer = 0.0f;
     RandomStream.Initialize(42);
@@ -92,8 +95,8 @@ void ALab_1GameMode::Tick(float DeltaSeconds)
         return;
     }
 
-    for (auto House : HouseActors) {
-        if (House->TimeoutReached()) {
+    for (auto& House : Houses) {
+        if (House.Actor->TimeoutReached()) {
             SetCurrentState(ELab_1PlayState::EGameOver);
             return;
         }
@@ -118,28 +121,23 @@ int ALab_1GameMode::GetDeliveredPizzaOrderCount() const
 
 void ALab_1GameMode::SpawnPizza()
 {
-    TArray<AHouseActor*> HouseActorsNotWaitingDelivery;
-    TArray<int> RealIndices;
-    for (int Index = 0; Index < HouseActors.Num(); ++Index) {
-        auto Actor = HouseActors[Index];
-        if (!Actor->WaitsPizzaDelivery()) {
-            HouseActorsNotWaitingDelivery.Add(Actor);
-            RealIndices.Add(Index);
+    TArray<int> HouseIndices;
+    for (int Index = 0; Index < Houses.Num(); ++Index) {
+        if (!Houses[Index].Actor->WaitsPizzaDelivery()) {
+            HouseIndices.Add(Index);
         }
     }
-    if (HouseActorsNotWaitingDelivery.Num() == 0) {
+    if (HouseIndices.Num() == 0) {
         // Game over.
         return;
     }
 
-    int HouseIndex = RandomStream.RandRange(0, HouseActorsNotWaitingDelivery.Num() - 1);
-    auto Actor = HouseActorsNotWaitingDelivery[HouseIndex];
-    int RealHouseIndex = RealIndices[HouseIndex];
-
+    int Index = RandomStream.RandRange(0, HouseIndices.Num() - 1);
+    int HouseIndex = HouseIndices[Index];
     int OrderNumber = TotalPizzaOrderCount++;
-    PizzaOrders.Add(FPizzaOrder(OrderNumber, RealHouseIndex, 1));
-    UE_LOG(LogTemp, Warning, TEXT("Spawning pizza at %d"), RealHouseIndex);
-    Actor->OrderPizzaDelivery();
+    PizzaOrders.Add(FPizzaOrder(OrderNumber, HouseIndex, 1));
+    UE_LOG(LogTemp, Warning, TEXT("Spawning pizza at %d, order number %d"), HouseIndex, OrderNumber);
+    Houses[HouseIndex].Actor->OrderPizzaDelivery();
 }
 
 TArray<FPizzaOrder> ALab_1GameMode::GetPizzaOrders() const
@@ -147,8 +145,12 @@ TArray<FPizzaOrder> ALab_1GameMode::GetPizzaOrders() const
     return PizzaOrders;
 }
 
-const TArray<FVector>& ALab_1GameMode::GetHouseLocations() const
+TArray<FVector> ALab_1GameMode::GetHouseLocations() const
 {
+    TArray<FVector> HouseLocations;
+    for (auto House : Houses) {
+        HouseLocations.Add(House.Location);
+    }
     return HouseLocations;
 }
 
@@ -185,8 +187,8 @@ bool ALab_1GameMode::TryDeliverPizza(ALab_1Character* Character, int OrderNumber
         return false;
     }
     int HouseNumber = Order->HouseNumber;
-    auto* House = HouseActors[HouseNumber];
-    bool bDelivered = Character->TryDeliverPizza(House);
+    auto* Actor = Houses[HouseNumber].Actor;
+    bool bDelivered = Character->TryDeliverPizza(Actor);
     if (bDelivered) {
         RemoveOrder(OrderNumber);
         ++DeliveredPizzaOrderCount;
@@ -196,5 +198,5 @@ bool ALab_1GameMode::TryDeliverPizza(ALab_1Character* Character, int OrderNumber
 
 float ALab_1GameMode::GetHouseTimeLeft(int HouseNumber)
 {
-    return HouseActors[HouseNumber]->GetTimeLeft();
+    return Houses[HouseNumber].Actor->GetTimeLeft();
 }

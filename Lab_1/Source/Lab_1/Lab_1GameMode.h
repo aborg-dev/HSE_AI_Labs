@@ -33,7 +33,7 @@ public:
     float SpawnDelay;
 
     // Returns locations of all houses in the level.
-    const TArray<FVector>& GetHouseLocations() const;
+    TArray<FVector> GetHouseLocations() const;
 
     // Returns currently active pizza orders.
     TArray<FPizzaOrder> GetPizzaOrders() const;
@@ -53,8 +53,17 @@ public:
     float GetHouseTimeLeft(int HouseNumber);
 
 private:
-    TArray<AHouseActor*> HouseActors;
-    TArray<FVector> HouseLocations;
+    struct House
+    {
+        House(AHouseActor* actor, const FVector& location, const FString& name)
+            : Actor(actor), Location(location), Name(name) {}
+
+        AHouseActor* Actor;
+        FVector Location;
+        FString Name;
+    };
+
+    TArray<House> Houses;
     TArray<FPizzaOrder> PizzaOrders;
 
     FPizzaOrder* FindOrder(int OrderNumber);
