@@ -121,23 +121,15 @@ int ALab_1GameMode::GetDeliveredPizzaOrderCount() const
 
 void ALab_1GameMode::SpawnPizza()
 {
-    TArray<int> HouseIndices;
-    for (int Index = 0; Index < Houses.Num(); ++Index) {
-        if (!Houses[Index].Actor->WaitsPizzaDelivery()) {
-            HouseIndices.Add(Index);
-        }
-    }
-    if (HouseIndices.Num() == 0) {
-        // Game over.
+    int HouseIndex = RandomStream.RandRange(0, Houses.Num() - 1);
+    auto* Actor = Houses[HouseIndex].Actor;
+    if (Actor->WaitsPizzaDelivery()) {
         return;
     }
-
-    int Index = RandomStream.RandRange(0, HouseIndices.Num() - 1);
-    int HouseIndex = HouseIndices[Index];
     int OrderNumber = TotalPizzaOrderCount++;
     PizzaOrders.Add(FPizzaOrder(OrderNumber, HouseIndex, 1));
     UE_LOG(LogTemp, Warning, TEXT("Spawning pizza at %d, order number %d"), HouseIndex, OrderNumber);
-    Houses[HouseIndex].Actor->OrderPizzaDelivery();
+    Actor->OrderPizzaDelivery();
 }
 
 TArray<FPizzaOrder> ALab_1GameMode::GetPizzaOrders() const
