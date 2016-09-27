@@ -127,3 +127,11 @@ float ABaseAIController::GetHouseTimeLeft(int HouseNumber)
     return MyGameMode->GetHouseTimeLeft(HouseNumber);
 }
 
+float ABaseAIController::GetCharacterMaxSpeed()
+{
+    auto* Character = GetCharacter();
+    if (!Character) {
+        return 0.f;
+    }
+    return Character->GetCharacterMovement()->MaxWalkSpeed;
+}

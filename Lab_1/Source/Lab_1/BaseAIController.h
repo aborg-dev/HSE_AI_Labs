@@ -44,6 +44,8 @@ protected:
 
     float GetHouseTimeLeft(int HouseNumber);
 
+    float GetCharacterMaxSpeed();
+
 private:
     ALab_1GameMode* GetGameMode();
 
