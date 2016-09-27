@@ -64,7 +64,7 @@ void AHouseActor::SetHouseIndex(int Index)
 
 bool AHouseActor::WaitsPizzaDelivery() const
 {
-    return PizzaOrders.Num();
+    return PizzaOrders.Num() > 0;
 }
 
 TSharedRef<FPizzaOrder> AHouseActor::OrderPizzaDelivery(int OrderNumber)
