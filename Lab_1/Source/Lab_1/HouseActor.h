@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "PizzaOrder.h"
 #include "HouseActor.generated.h"
 
 UCLASS()
@@ -20,16 +21,21 @@ public:
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
+    void SetHouseIndex(int Index);
+
     bool WaitsPizzaDelivery() const;
 
-    void OrderPizzaDelivery();
+    // Called when new order for the house is spawned.
+    TSharedRef<FPizzaOrder> OrderPizzaDelivery(int OrderNumber);
 
     // Called when pizza is delivered.
-    void OnPizzaDelivered();
+    void OnPizzaDelivered(int OrderNumber);
 
-    void TogglePizzaDeliveryHighlight();
-
+    // Returns remaining time of the longest waiting order.
     float GetTimeLeft() const;
+
+    // True if timeout for at least one of the orders is reached.
+    bool TimeoutReached() const;
 
     // Component for handling collisions.
     UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = House)
@@ -42,16 +48,16 @@ public:
     UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = House)
     UParticleSystemComponent *PizzaDeliveryHighlightComponent;
 
+    // Max time the order is ready to wait.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Delivery)
     float MaxWaitTime;
 
-    bool TimeoutReached() const;
-
 private:
-    // Is true if house ordered some delivery.
-    bool bWaitsPizzaDelivery;
+    int HouseIndex;
 
-    float CurrentWaitTime;
+    TArray<TSharedRef<FPizzaOrder>> PizzaOrders;
 
     bool bTimeoutReached;
+
+    void TogglePizzaDeliveryHighlight();
 };

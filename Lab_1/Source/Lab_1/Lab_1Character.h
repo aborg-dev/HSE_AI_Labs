@@ -32,7 +32,7 @@ public:
     bool TryGrabPizza();
 
     // Tries to deliver pizza to specified house. Returns true on success and false otherwise.
-    bool TryDeliverPizza(AHouseActor* HouseActor);
+    bool TryDeliverPizza(AHouseActor* HouseActor, int OrderNumber);
 
 private:
 	/** Top down camera */

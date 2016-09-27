@@ -71,7 +71,7 @@ bool ALab_1Character::TryGrabPizza()
     return true;
 }
 
-bool ALab_1Character::TryDeliverPizza(AHouseActor* HouseActor)
+bool ALab_1Character::TryDeliverPizza(AHouseActor* HouseActor, int OrderNumber)
 {
     if (PizzaAmount == 0) {
         UE_LOG(LogTemp, Warning, TEXT("Not enought pizza!"));
@@ -92,6 +92,6 @@ bool ALab_1Character::TryDeliverPizza(AHouseActor* HouseActor)
     }
 
     --PizzaAmount;
-    HouseActor->OnPizzaDelivered();
+    HouseActor->OnPizzaDelivered(OrderNumber);
     return true;
 }

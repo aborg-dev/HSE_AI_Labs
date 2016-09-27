@@ -51,6 +51,7 @@ void ALab_1GameMode::BeginPlay()
 
     for (int Index = 0; Index < Houses.Num(); ++Index) {
         auto* Actor = Houses[Index].Actor;
+        Actor->SetHouseIndex(Index);
         UE_LOG(LogTemp, Warning, TEXT("House %d: %s"), Index, *Actor->GetName());
     }
 
@@ -128,34 +129,35 @@ void ALab_1GameMode::SpawnPizza()
 {
     int HouseIndex = RandomStream.RandRange(0, Houses.Num() - 1);
     auto* Actor = Houses[HouseIndex].Actor;
-    if (Actor->WaitsPizzaDelivery()) {
-        return;
-    }
     int OrderNumber = TotalPizzaOrderCount++;
-    PizzaOrders.Add(FPizzaOrder(OrderNumber, HouseIndex, 1));
+    auto Order = Actor->OrderPizzaDelivery(OrderNumber);
+    PizzaOrders.Add(Order);
     UE_LOG(LogTemp, Warning, TEXT("Spawning pizza at %d, order number %d"), HouseIndex, OrderNumber);
-    Actor->OrderPizzaDelivery();
 }
 
 TArray<FPizzaOrder> ALab_1GameMode::GetPizzaOrders() const
 {
-    return PizzaOrders;
+    TArray<FPizzaOrder> Orders;
+    for (auto Order : PizzaOrders) {
+        Orders.Add(Order.Get());
+    }
+    return Orders;
 }
 
 TArray<FVector> ALab_1GameMode::GetHouseLocations() const
 {
-    TArray<FVector> HouseLocations;
+    TArray<FVector> Locations;
     for (auto House : Houses) {
-        HouseLocations.Add(House.Location);
+        Locations.Add(House.Location);
     }
-    return HouseLocations;
+    return Locations;
 }
 
-FPizzaOrder* ALab_1GameMode::FindOrder(int OrderNumber)
+TSharedPtr<FPizzaOrder> ALab_1GameMode::FindOrder(int OrderNumber)
 {
     for (auto& Order : PizzaOrders) {
-        if (Order.OrderNumber == OrderNumber) {
-            return &Order;
+        if (Order->OrderNumber == OrderNumber) {
+            return Order;
         }
     }
     return nullptr;
@@ -165,7 +167,7 @@ void ALab_1GameMode::RemoveOrder(int OrderNumber)
 {
     int Index = 0;
     for (; Index < PizzaOrders.Num(); ++Index) {
-        if (PizzaOrders[Index].OrderNumber == OrderNumber) {
+        if (PizzaOrders[Index]->OrderNumber == OrderNumber) {
             break;
         }
     }
@@ -178,14 +180,14 @@ void ALab_1GameMode::RemoveOrder(int OrderNumber)
 
 bool ALab_1GameMode::TryDeliverPizza(ALab_1Character* Character, int OrderNumber)
 {
-    auto* Order = FindOrder(OrderNumber);
-    if (!Order) {
+    auto Order = FindOrder(OrderNumber);
+    if (!Order.IsValid()) {
         UE_LOG(LogTemp, Error, TEXT("Order %d does not exist"), OrderNumber);
         return false;
     }
     int HouseNumber = Order->HouseNumber;
     auto* Actor = Houses[HouseNumber].Actor;
-    bool bDelivered = Character->TryDeliverPizza(Actor);
+    bool bDelivered = Character->TryDeliverPizza(Actor, OrderNumber);
     if (bDelivered) {
         RemoveOrder(OrderNumber);
         ++DeliveredPizzaOrderCount;

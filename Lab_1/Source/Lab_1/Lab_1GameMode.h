@@ -64,9 +64,9 @@ private:
     };
 
     TArray<House> Houses;
-    TArray<FPizzaOrder> PizzaOrders;
+    TArray<TSharedRef<FPizzaOrder>> PizzaOrders;
 
-    FPizzaOrder* FindOrder(int OrderNumber);
+    TSharedPtr<FPizzaOrder> FindOrder(int OrderNumber);
 
     void RemoveOrder(int OrderNumber);
 

@@ -32,7 +32,7 @@ AHouseActor::AHouseActor()
         PizzaDeliveryHighlightComponent->SetTemplate(ParticleAsset.Object);
     }
 
-    bWaitsPizzaDelivery = false;
+    HouseIndex = -1;
 
     MaxWaitTime = 10.0f;
     bTimeoutReached = false;
@@ -47,46 +47,68 @@ void AHouseActor::BeginPlay()
 // Called every frame
 void AHouseActor::Tick( float DeltaTime )
 {
-	Super::Tick( DeltaTime );
+    Super::Tick( DeltaTime );
 
-    if (bWaitsPizzaDelivery) {
-        CurrentWaitTime += DeltaTime;
-        if (CurrentWaitTime > MaxWaitTime) {
+    for (const auto& Order : PizzaOrders) {
+        Order->CurrentWaitTime += DeltaTime;
+        if (Order->CurrentWaitTime > MaxWaitTime) {
             bTimeoutReached = true;
         }
     }
 }
 
+void AHouseActor::SetHouseIndex(int Index)
+{
+    HouseIndex = Index;
+}
+
 bool AHouseActor::WaitsPizzaDelivery() const
 {
-    return bWaitsPizzaDelivery;
+    return PizzaOrders.Num();
 }
 
-void AHouseActor::OrderPizzaDelivery()
+TSharedRef<FPizzaOrder> AHouseActor::OrderPizzaDelivery(int OrderNumber)
 {
-    if (bWaitsPizzaDelivery) {
-        UE_LOG(LogTemp, Warning, TEXT("House already waits for delivery!"));
+    if (HouseIndex == -1) {
+        UE_LOG(LogTemp, Warning, TEXT("House index is not set, failed to create pizza order"));
+        check(HouseIndex != -1);
     }
 
-    bWaitsPizzaDelivery = true;
+    TSharedRef<FPizzaOrder> Order(new FPizzaOrder(OrderNumber, HouseIndex, 1));
+    PizzaOrders.Add(Order);
     TogglePizzaDeliveryHighlight();
+    return Order;
 }
 
-void AHouseActor::OnPizzaDelivered()
+void AHouseActor::OnPizzaDelivered(int OrderNumber)
 {
-    if (!bWaitsPizzaDelivery) {
+    if (!PizzaOrders.Num()) {
         UE_LOG(LogTemp, Warning, TEXT("House doesn't wait for delivery!"));
+        return;
     }
 
-    bWaitsPizzaDelivery = false;
-    CurrentWaitTime = 0;
-    TogglePizzaDeliveryHighlight();
+    int Index = 0;
+    for (; Index < PizzaOrders.Num(); ++Index) {
+        if (PizzaOrders[Index]->OrderNumber == OrderNumber) {
+            break;
+        }
+    }
+
+    if (Index == PizzaOrders.Num()) {
+        UE_LOG(LogTemp, Warning, TEXT("Order %d is not found"), OrderNumber);
+        return;
+    }
+
+    PizzaOrders.RemoveAtSwap(Index);
+    if (!PizzaOrders.Num()) {
+        TogglePizzaDeliveryHighlight();
+    }
 }
 
 void AHouseActor::TogglePizzaDeliveryHighlight()
 {
     if (PizzaDeliveryHighlightComponent && PizzaDeliveryHighlightComponent->Template) {
-        if (bWaitsPizzaDelivery) {
+        if (PizzaOrders.Num()) {
             PizzaDeliveryHighlightComponent->Activate();
         } else {
             PizzaDeliveryHighlightComponent->Deactivate();
@@ -101,5 +123,9 @@ bool AHouseActor::TimeoutReached() const
 
 float AHouseActor::GetTimeLeft() const
 {
-    return MaxWaitTime - CurrentWaitTime;
+    float MinTimeLeft = MaxWaitTime;
+    for (const auto& Order : PizzaOrders) {
+        MinTimeLeft = fmin(MinTimeLeft, MaxWaitTime - Order->CurrentWaitTime);
+    }
+    return MinTimeLeft;
 }
