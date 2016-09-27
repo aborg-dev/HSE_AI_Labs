@@ -49,6 +49,11 @@ void ALab_1GameMode::BeginPlay()
         return lhs.Name < rhs.Name;
     });
 
+    for (int Index = 0; Index < Houses.Num(); ++Index) {
+        auto* Actor = Houses[Index].Actor;
+        UE_LOG(LogTemp, Warning, TEXT("House %d: %s"), Index, *Actor->GetName());
+    }
+
     SpawnPizzaTimer = 0.0f;
     RandomStream.Initialize(42);
     // Transition the game into playing state.
@@ -165,7 +170,7 @@ void ALab_1GameMode::RemoveOrder(int OrderNumber)
         }
     }
     if (Index != PizzaOrders.Num()) {
-        PizzaOrders.RemoveAt(Index, 1, true);
+        PizzaOrders.RemoveAtSwap(Index);
     } else {
         UE_LOG(LogTemp, Warning, TEXT("Failed to remove non-exising order %d"), OrderNumber);
     }

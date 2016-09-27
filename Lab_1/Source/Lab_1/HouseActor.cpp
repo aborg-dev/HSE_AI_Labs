@@ -85,9 +85,12 @@ void AHouseActor::OnPizzaDelivered()
 
 void AHouseActor::TogglePizzaDeliveryHighlight()
 {
-    if (PizzaDeliveryHighlightComponent && PizzaDeliveryHighlightComponent->Template)
-    {
-        PizzaDeliveryHighlightComponent->ToggleActive();
+    if (PizzaDeliveryHighlightComponent && PizzaDeliveryHighlightComponent->Template) {
+        if (bWaitsPizzaDelivery) {
+            PizzaDeliveryHighlightComponent->Activate();
+        } else {
+            PizzaDeliveryHighlightComponent->Deactivate();
+        }
     }
 }
 
