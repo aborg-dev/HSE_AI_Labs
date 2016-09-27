@@ -22,7 +22,7 @@ ALab_1GameMode::ALab_1GameMode()
     // Set the default HUD class to be used in game.
     HUDClass = APizzaHUD::StaticClass();
 
-    // Spawn pizza every 3 seconds.
+    // Spawn pizza every 2 seconds.
     SpawnDelay = 2.0f;
 
     TotalPizzaOrderCount = 0;

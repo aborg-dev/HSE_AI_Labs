@@ -52,7 +52,7 @@ void ASimpleAIController::Tick(float DeltaSeconds)
     int PizzaAmount = GetPizzaAmount();
     if (PizzaAmount == 0) {
         bool bGrabbedPizza = TryGrabPizza();
-        // Failed to retriev pizza, need to get closer to the bakery.
+        // Failed to retrieve pizza, need to get closer to the bakery.
         if (!bGrabbedPizza) {
             return;
         }
