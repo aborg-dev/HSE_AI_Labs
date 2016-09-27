@@ -109,9 +109,9 @@ void AHouseActor::TogglePizzaDeliveryHighlight()
 {
     if (PizzaDeliveryHighlightComponent && PizzaDeliveryHighlightComponent->Template) {
         if (PizzaOrders.Num()) {
-            PizzaDeliveryHighlightComponent->Activate();
+            //PizzaDeliveryHighlightComponent->Activate();
         } else {
-            PizzaDeliveryHighlightComponent->Deactivate();
+            //PizzaDeliveryHighlightComponent->Deactivate();
         }
     }
 }

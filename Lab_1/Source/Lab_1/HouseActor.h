@@ -32,6 +32,7 @@ public:
     void OnPizzaDelivered(int OrderNumber);
 
     // Returns remaining time of the longest waiting order.
+    UFUNCTION(BlueprintCallable, Category = Delivery)
     float GetTimeLeft() const;
 
     // True if timeout for at least one of the orders is reached.
