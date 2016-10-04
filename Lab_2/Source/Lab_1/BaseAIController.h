@@ -20,8 +20,7 @@ class LAB_1_API ABaseAIController : public AAIController
 public:
     ABaseAIController();
 
-protected:
-    virtual void Tick(float DeltaSeconds) override;
+    void BeginPlay() override;
 
     /** Navigate player to the given world location. */
     void SetNewMoveDestination(const FVector DestLocation);
@@ -32,23 +31,42 @@ protected:
 
     bool TryGrabPizza();
 
+    int GetPizzaAmount();
+
+    int GetPizzaCapacity();
+
+    float GetCharacterMaxSpeed();
+
+    int GetControllerId() const;
+
+    FVector GetCharacterLocation();
+
+    // Returns the coordinates of the edge of the map
+    FVector GetWorldOrigin();
+
+    // Returns size of the map
+    FVector GetWorldSize();
+
+    int GetControllerCount();
+
+    ABaseAIController* GetControllerById(int controllerId);
+
+protected:
+    virtual void Tick(float DeltaSeconds) override;
+
     // Returns locations of all houses in the level.
     TArray<FVector> GetHouseLocations();
 
     // Returns currently active pizza orders.
     TArray<FPizzaOrder> GetPizzaOrders();
 
-    int GetPizzaAmount();
-
-    int GetPizzaCapacity();
-
     float GetHouseTimeLeft(int HouseNumber);
-
-    float GetCharacterMaxSpeed();
 
 private:
     ALab_1GameMode* GetGameMode();
 
     ALab_1Character* GetCharacter();
+
+    int ControllerId;
 
 };

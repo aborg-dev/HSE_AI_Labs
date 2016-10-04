@@ -207,3 +207,44 @@ float ALab_1GameMode::GetHouseTimeLeft(int HouseNumber)
 {
     return Houses[HouseNumber].Actor->GetTimeLeft();
 }
+
+FVector ALab_1GameMode::GetWorldOrigin() const
+{
+    return WorldOrigin;
+}
+
+void ALab_1GameMode::SetWorldOrigin(const FVector& worldOrigin)
+{
+    WorldOrigin = worldOrigin;
+}
+
+FVector ALab_1GameMode::GetWorldSize() const
+{
+    return WorldSize;
+}
+
+void ALab_1GameMode::SetWorldSize(const FVector& worldSize)
+{
+    WorldSize = worldSize;
+}
+
+int ALab_1GameMode::RegisterController(ABaseAIController* Controller)
+{
+    int ControllerId = Controllers.Num();
+    Controllers.Add(Controller);
+    return ControllerId;
+}
+
+int ALab_1GameMode::GetControllerCount() const
+{
+    return Controllers.Num();
+}
+
+ABaseAIController* ALab_1GameMode::GetControllerById(int ControllerId)
+{
+    if (ControllerId >= Controllers.Num()) {
+        UE_LOG(LogTemp, Error, TEXT("ControllerId is greater or equal to the number of controllers: %d >= %d"), ControllerId, Controllers.Num());
+        return nullptr;
+    }
+    return Controllers[ControllerId];
+}

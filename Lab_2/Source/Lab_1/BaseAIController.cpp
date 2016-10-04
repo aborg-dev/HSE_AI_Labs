@@ -11,6 +11,18 @@
 
 ABaseAIController::ABaseAIController()
 {
+    ControllerId = -1;
+}
+
+void ABaseAIController::BeginPlay()
+{
+    Super::BeginPlay();
+
+    auto* MyGameMode = GetGameMode();
+    if (!MyGameMode) {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to register controller in GameMode"));
+    }
+    ControllerId = MyGameMode->RegisterController(this);
 }
 
 void ABaseAIController::Tick(float DeltaSeconds)
@@ -134,4 +146,57 @@ float ABaseAIController::GetCharacterMaxSpeed()
         return 0.f;
     }
     return Character->GetCharacterMovement()->MaxWalkSpeed;
+}
+
+FVector ABaseAIController::GetCharacterLocation()
+{
+	APawn* const Pawn = GetPawn();
+	if (!Pawn) {
+        return FVector(0.f, 0.f, 0.f);
+	}
+    return Pawn->GetActorLocation();
+}
+
+FVector ABaseAIController::GetWorldOrigin()
+{
+    auto* MyGameMode = GetGameMode();
+    if (!MyGameMode) {
+        return FVector(0.f, 0.f, 0.f);
+    }
+    return MyGameMode->GetWorldOrigin();
+}
+
+FVector ABaseAIController::GetWorldSize()
+{
+    auto* MyGameMode = GetGameMode();
+    if (!MyGameMode) {
+        return FVector(0.f, 0.f, 0.f);
+    }
+    return MyGameMode->GetWorldSize();
+}
+
+int ABaseAIController::GetControllerId() const
+{
+    if (ControllerId == -1) {
+        UE_LOG(LogTemp, Warning, TEXT("ControllerId was not set"));
+    }
+    return ControllerId;
+}
+
+int ABaseAIController::GetControllerCount()
+{
+    auto* MyGameMode = GetGameMode();
+    if (!MyGameMode) {
+        return 0;
+    }
+    return MyGameMode->GetControllerCount();
+}
+
+ABaseAIController* ABaseAIController::GetControllerById(int controllerId)
+{
+    auto* MyGameMode = GetGameMode();
+    if (!MyGameMode) {
+        return nullptr;
+    }
+    return MyGameMode->GetControllerById(controllerId);
 }

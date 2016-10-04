@@ -4,7 +4,7 @@
 #include "LevelGeneratorActor.h"
 #include "Kismet/GameplayStatics.h"
 
-//#include "Lab_1GameMode.h"
+#include "Lab_1GameMode.h"
 #include "HouseActor.h"
 
 // Sets default values
@@ -123,8 +123,14 @@ void ALevelGeneratorActor::BeginPlay()
 {
     Super::BeginPlay();
 
-    //auto* MyGameMode = Cast<ALab_1GameMode>(UGameplayStatics::GetGameMode(this));
-    //MyGameMode->DiscoverHouses();
+    auto* MyGameMode = Cast<ALab_1GameMode>(UGameplayStatics::GetGameMode(this));
+    if (MyGameMode) {
+        MyGameMode->SetWorldOrigin(FloorOrigin);
+        FVector WorldSize = FloorBoxExtent;
+        WorldSize.X *= 2;
+        WorldSize.Y *= 2;
+        MyGameMode->SetWorldSize(WorldSize);
+    }
 }
 
 // Called every frame

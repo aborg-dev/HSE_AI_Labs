@@ -6,6 +6,7 @@
 
 class AHouseActor;
 class ALab_1Character;
+class ABaseAIController;
 
 // Enum to represent current game state.
 enum class ELab_1PlayState : short
@@ -54,6 +55,20 @@ public:
 
     void DiscoverHouses();
 
+    FVector GetWorldOrigin() const;
+
+    void SetWorldOrigin(const FVector& worldOrigin);
+
+    FVector GetWorldSize() const;
+
+    void SetWorldSize(const FVector& worldSize);
+
+    int RegisterController(ABaseAIController* Controller);
+
+    int GetControllerCount() const;
+
+    ABaseAIController* GetControllerById(int ControllerId);
+
 private:
     struct House
     {
@@ -65,8 +80,12 @@ private:
         FString Name;
     };
 
+    FVector WorldOrigin;
+    FVector WorldSize;
+
     TArray<House> Houses;
     TArray<TSharedRef<FPizzaOrder>> PizzaOrders;
+    TArray<ABaseAIController*> Controllers;
 
     TSharedPtr<FPizzaOrder> FindOrder(int OrderNumber);
 
