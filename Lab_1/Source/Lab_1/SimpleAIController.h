@@ -15,10 +15,11 @@ class LAB_1_API ASimpleAIController : public ABaseAIController
 
 public:
     ASimpleAIController();
+	float CalcRank(float timeLeft, float Distance);
 
 protected:
     virtual void Tick(float DeltaSeconds) override;
-
+	
     bool bDeliveringOrder;
     int CurrentOrderNumber;
     FVector CurrentDestination;

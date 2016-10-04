@@ -23,7 +23,7 @@ ALab_1GameMode::ALab_1GameMode()
     HUDClass = APizzaHUD::StaticClass();
 
     // Spawn pizza every 2 seconds.
-    SpawnDelay = 2.0f;
+    SpawnDelay = 1.0f;
 
     TotalPizzaOrderCount = 0;
     DeliveredPizzaOrderCount = 0;

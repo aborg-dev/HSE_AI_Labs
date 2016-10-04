@@ -34,7 +34,7 @@ AHouseActor::AHouseActor()
 
     HouseIndex = -1;
 
-    MaxWaitTime = 10.0f;
+    MaxWaitTime = 20.0f;
     bTimeoutReached = false;
 }
 
