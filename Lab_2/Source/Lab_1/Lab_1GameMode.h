@@ -52,6 +52,8 @@ public:
 
     float GetHouseTimeLeft(int HouseNumber);
 
+    void DiscoverHouses();
+
 private:
     struct House
     {

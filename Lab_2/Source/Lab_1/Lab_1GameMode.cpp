@@ -34,7 +34,17 @@ void ALab_1GameMode::BeginPlay()
     // Don't forget to call parent BeginPlay() method.
     Super::BeginPlay();
 
-    // Find all SpawnVolume actors.
+    DiscoverHouses();
+
+    SpawnPizzaTimer = 0.0f;
+    RandomStream.Initialize(42);
+    // Transition the game into playing state.
+    SetCurrentState(ELab_1PlayState::EPlaying);
+}
+
+void ALab_1GameMode::DiscoverHouses()
+{
+    // Find all House actors.
     TArray<AActor*> FoundActors;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AHouseActor::StaticClass(), FoundActors);
     for (auto Actor : FoundActors) {
@@ -54,11 +64,6 @@ void ALab_1GameMode::BeginPlay()
         Actor->SetHouseIndex(Index);
         UE_LOG(LogTemp, Warning, TEXT("House %d: %s"), Index, *Actor->GetName());
     }
-
-    SpawnPizzaTimer = 0.0f;
-    RandomStream.Initialize(42);
-    // Transition the game into playing state.
-    SetCurrentState(ELab_1PlayState::EPlaying);
 }
 
 ELab_1PlayState ALab_1GameMode::GetCurrentState() const
@@ -127,6 +132,9 @@ int ALab_1GameMode::GetDeliveredPizzaOrderCount() const
 
 void ALab_1GameMode::SpawnPizza()
 {
+    if (Houses.Num() == 0) {
+        return;
+    }
     int HouseIndex = RandomStream.RandRange(0, Houses.Num() - 1);
     auto* Actor = Houses[HouseIndex].Actor;
     int OrderNumber = TotalPizzaOrderCount++;
