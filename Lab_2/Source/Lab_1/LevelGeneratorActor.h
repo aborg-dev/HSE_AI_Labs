@@ -3,7 +3,9 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include <vector>
 #include "LevelGeneratorActor.generated.h"
+
 
 class HouseActor;
 
@@ -55,6 +57,8 @@ private:
     FVector FloorBoxExtent;
 
     FVector HouseActorBoxExtent;
+
+    std::vector<std::vector<char>> GridOccupied;
 
     FVector GridOrigin;
     float CellHeight;
