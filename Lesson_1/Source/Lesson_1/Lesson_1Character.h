@@ -27,27 +27,34 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
 
+    // Virtual sphere around the characted that determines the pickups that can be collected now.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Power)
     USphereComponent* CollectionSphere;
 
+    // Current power level of the character.
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Power)
     float PowerLevel;
 
+    // Degree of influence of power on the character speed.
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Power)
     float SpeedFactor;
-    
+
+    // Base speed of the character.
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Power)
     float BaseSpeed;
-    
+
+    // Override the base function to implement character specific logic.
     virtual void Tick(float DeltaSeconds) override;
 
 protected:
 
+    // Collects all batteries that are in collection radius of the player.
     UFUNCTION(BlueprintCallable, Category = Power)
     void CollectBatteries();
 
+    // Applies collected battery power to update character state.
     UFUNCTION(BlueprintImplementableEvent, Category = Power)
-    void PowerUp(float BetteryPower);
+    void PowerUp(float BatteryPower);
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);
