@@ -35,18 +35,39 @@ void ASimpleAIController::Tick(float DeltaSeconds)
         return;
     }
 
-    // Take first order.
+    // Take first not serverd order.
     auto HouseLocations = GetHouseLocations();
 
-    int closestOrder = 0;
-    float closestDistance = GetDistanceToDestination(HouseLocations[Orders[0].HouseNumber]);
+    TSet<int> ServedOrders;
+    for (int id = 0; id < GetControllerCount(); ++id) {
+        if (id != ControllerId) {
+            ASimpleAIController* Controller = Cast<ASimpleAIController>(GetControllerById(id));
+            if (Controller) {
+                int currentOrderNumber = Controller->GetCurrentOrderNumber();
+                if (currentOrderNumber != -1) {
+                    UE_LOG(LogTemp, Warning, TEXT("Controller %d is delivering order %d"), id, currentOrderNumber);
+                    ServedOrders.Add(currentOrderNumber);
+                }
+            }
+        }
+    }
+
+    int closestOrder = -1;
+    float closestDistance = 1e9;
     for (int i = 0; i < Orders.Num(); ++i) {
+        if (ServedOrders.Contains(Orders[i].OrderNumber)) {
+            continue;
+        }
         float currentDistance = GetDistanceToDestination(HouseLocations[Orders[i].HouseNumber]);
-        if (currentDistance < closestDistance) {
+        if (closestOrder == -1 || currentDistance < closestDistance) {
             closestDistance = currentDistance;
             closestOrder = i;
         }
     }
+    if (closestOrder == -1) {
+        return;
+    }
+
     auto Order = Orders[closestOrder];
 
     int PizzaAmount = GetPizzaAmount();
@@ -66,3 +87,7 @@ void ASimpleAIController::Tick(float DeltaSeconds)
     UE_LOG(LogTemp, Warning, TEXT("Took new order %d to house %d"), Order.OrderNumber, Order.HouseNumber);
 }
 
+int ASimpleAIController::GetCurrentOrderNumber()
+{
+    return CurrentOrderNumber;
+}

@@ -16,6 +16,8 @@ class LAB_1_API ASimpleAIController : public ABaseAIController
 public:
     ASimpleAIController();
 
+    int GetCurrentOrderNumber();
+
 protected:
     virtual void Tick(float DeltaSeconds) override;
 

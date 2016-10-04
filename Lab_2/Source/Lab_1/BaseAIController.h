@@ -62,11 +62,11 @@ protected:
 
     float GetHouseTimeLeft(int HouseNumber);
 
+    int ControllerId;
+
 private:
     ALab_1GameMode* GetGameMode();
 
     ALab_1Character* GetCharacter();
-
-    int ControllerId;
 
 };
