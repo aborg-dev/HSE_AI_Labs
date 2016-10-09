@@ -14,6 +14,7 @@ void ASimpleAIController::Tick(float DeltaSeconds)
     if (bDeliveringOrder) {
         float Distance = GetDistanceToDestination(CurrentDestination);
         if (Distance > 300.f) {
+            UE_LOG(LogTemp, Warning, TEXT("Moving to order %d, current distance: %1.3f"), CurrentOrderNumber, Distance);
             SetNewMoveDestination(CurrentDestination);
             return;
         }
