@@ -39,6 +39,9 @@ public:
     UPROPERTY(EditAnywhere, Category = Spawning)
     int RandomSeed;
 
+    UPROPERTY(EditAnywhere, Category = Spawning)
+    bool EnableGeneration;
+
 private:
     void DeleteOldActors();
     void SpawnNewActors();

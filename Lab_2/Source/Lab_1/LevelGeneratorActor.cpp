@@ -18,14 +18,17 @@ ALevelGeneratorActor::ALevelGeneratorActor()
 
     HouseActorCount = 3;
     RandomSeed = 42;
+    EnableGeneration = false;
 }
 
 void ALevelGeneratorActor::OnConstruction(const FTransform& Transform)
 {
-    RandomStream.Initialize(RandomSeed);
-    CollectWorldParameters();
-    DeleteOldActors();
-    SpawnNewActors();
+    if (EnableGeneration) {
+        RandomStream.Initialize(RandomSeed);
+        CollectWorldParameters();
+        DeleteOldActors();
+        SpawnNewActors();
+    }
 }
 
 void ALevelGeneratorActor::CollectWorldParameters()
