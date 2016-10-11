@@ -85,17 +85,21 @@ void ALab_3PlayerController::MoveToTouchLocation(const ETouchIndex::Type FingerI
 	}
 }
 
-void ALab_3PlayerController::SetNewMoveDestination(const FVector DestLocation)
+void ALab_3PlayerController::SetNewMoveDestination(FVector DestLocation)
 {
     APawn* const MyPawn = GetPawn();
     if (MyPawn)
     {
         UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
 
+        DestLocation.Z += 50.0f;
+
         FHitResult HitData(ForceInit);
         if (UStaticLibrary::Trace(GetWorld(), MyPawn, MyPawn->GetActorLocation(), DestLocation, HitData)) {
-            UE_LOG(LogTemp, Warning, TEXT("Can't see the movement point"));
+            UE_LOG(LogTemp, Warning, TEXT("Can't see the movement point %s"), *DestLocation.ToString());
             return;
+        } else {
+            UE_LOG(LogTemp, Warning, TEXT("Moving to %s"), *DestLocation.ToString());
         }
 
         float const Distance = FVector::Dist(DestLocation, MyPawn->GetActorLocation());

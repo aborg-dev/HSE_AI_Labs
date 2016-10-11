@@ -30,17 +30,18 @@ void ABaseAIController::Tick(float DeltaSeconds)
 {
 }
 
-bool ABaseAIController::CheckVisibility(const FVector DestLocation)
+bool ABaseAIController::CheckVisibility(FVector DestLocation)
 {
     APawn* const Pawn = GetPawn();
     if (Pawn) {
         FHitResult HitData(ForceInit);
+        DestLocation.Z += 50.0f;
         return !UStaticLibrary::Trace(GetWorld(), Pawn, Pawn->GetActorLocation(), DestLocation, HitData);
     }
     return false;
 }
 
-void ABaseAIController::SetNewMoveDestination(const FVector DestLocation)
+void ABaseAIController::SetNewMoveDestination(FVector DestLocation)
 {
     auto* MyGameMode = GetGameMode();
     if (MyGameMode->GetCurrentState() == ELab_3PlayState::EGameOver) {
@@ -50,6 +51,7 @@ void ABaseAIController::SetNewMoveDestination(const FVector DestLocation)
     APawn* const Pawn = GetPawn();
     if (Pawn) {
         FHitResult HitData(ForceInit);
+        DestLocation.Z += 50.0f;
         if (UStaticLibrary::Trace(GetWorld(), Pawn, Pawn->GetActorLocation(), DestLocation, HitData)) {
             return;
         }
