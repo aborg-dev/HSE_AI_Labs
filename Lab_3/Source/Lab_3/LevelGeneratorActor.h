@@ -44,9 +44,21 @@ private:
 
     void CollectWorldParameters();
 
-    void SpawnWall();
+    void GenerateMaze();
 
-    FVector GenerateRandomLocation();
+    void SpawnMaze();
+
+    void SpawnWall(FVector SpawnLocation);
+
+    FIntVector GenerateRandomCell() const;
+
+    FVector GetCellLocation(FIntVector Cell) const;
+
+    bool IsBorderCell(int row, int column) const;
+
+    bool IsValidCell(int row, int column) const;
+
+    bool HasOccupiedNeighbors(int row, int column) const;
 
     TArray<AActor*> SpawnedActors;
 

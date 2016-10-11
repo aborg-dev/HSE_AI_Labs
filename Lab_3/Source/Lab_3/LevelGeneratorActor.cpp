@@ -4,6 +4,7 @@
 #include "LevelGeneratorActor.h"
 #include "Lab_3GameMode.h"
 
+#include <functional>
 
 // Sets default values
 ALevelGeneratorActor::ALevelGeneratorActor()
@@ -33,9 +34,9 @@ void ALevelGeneratorActor::CollectWorldParameters()
 {
     FloorOrigin = FloorMesh->Bounds.Origin;
     FloorBoxExtent = FloorMesh->Bounds.BoxExtent;
-    GridOrigin.X = FloorOrigin.X - FloorBoxExtent.X * 0.9;
-    GridOrigin.Y = FloorOrigin.Y - FloorBoxExtent.Y * 0.9;
-    GridOrigin.Z = FloorOrigin.Z + FloorBoxExtent.Z * 0.9;
+    GridOrigin.X = FloorOrigin.X - FloorBoxExtent.X;
+    GridOrigin.Y = FloorOrigin.Y - FloorBoxExtent.Y;
+    GridOrigin.Z = FloorOrigin.Z + FloorBoxExtent.Z;
     UE_LOG(LogTemp, Warning, TEXT("FloorOrigin: %s"), *FloorOrigin.ToString());
     UE_LOG(LogTemp, Warning, TEXT("FloorBoxExtent: %s"), *FloorBoxExtent.ToString());
     UE_LOG(LogTemp, Warning, TEXT("GridOrigin: %s"), *GridOrigin.ToString());
@@ -53,8 +54,8 @@ void ALevelGeneratorActor::CollectWorldParameters()
             Actor->Destroy();
             UE_LOG(LogTemp, Warning, TEXT("WallActorBoxExtent: %s"), *WallActorBoxExtent.ToString());
 
-            CellHeight = WallActorBoxExtent.X * 1.1;
-            CellWidth = WallActorBoxExtent.Y * 1.1;
+            CellHeight = WallActorBoxExtent.X * 2;
+            CellWidth = WallActorBoxExtent.Y * 2;
             GridRows = FloorBoxExtent.X * 2 / CellHeight;
             GridColumns = FloorBoxExtent.Y * 2 / CellWidth;
             UE_LOG(LogTemp, Warning, TEXT("Grid rows: %d, Grid columns: %d"), GridRows, GridColumns);
@@ -77,15 +78,109 @@ void ALevelGeneratorActor::DeleteOldActors()
 void ALevelGeneratorActor::SpawnNewActors()
 {
     if (WallActor) {
+        GenerateMaze();
+        SpawnMaze();
+        /*
         for (int i = 0; i < WallActorCount; ++i) {
-            SpawnWall();
+            auto Cell = GenerateRandomCell();
+            GridOccupied[Cell.X][Cell.Y] = true;
+            SpawnWall(GetCellLocation(Cell));
         }
+        */
     }
 }
 
-FVector ALevelGeneratorActor::GenerateRandomLocation()
+const int DX[4] = {1, 0, -1, 0};
+const int DY[4] = {0, 1, 0, -1};
+
+bool ALevelGeneratorActor::IsBorderCell(int row, int column) const
 {
-    // The random spawn location will fall between the min and max X, Y, and Z
+    return row == 0 || row == GridRows - 1
+        || column == 0 || column == GridColumns - 1;
+}
+
+bool ALevelGeneratorActor::IsValidCell(int row, int column) const
+{
+    return row >= 0 && row < GridRows
+        && column >= 0 && column < GridColumns;
+}
+
+bool ALevelGeneratorActor::HasOccupiedNeighbors(int row, int column) const
+{
+    for (int dRow = -1; dRow <= 1; ++dRow) {
+        for (int dColumn = -1; dColumn <= 1; ++dColumn) {
+            int nRow = row + dRow;
+            int nColumn = column + dColumn;
+            if (IsValidCell(nRow, nColumn) && GridOccupied[nRow][nColumn]) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void ALevelGeneratorActor::GenerateMaze()
+{
+    for (int row = 0; row < GridRows; ++row) {
+        for (int column = 0; column < GridColumns; ++column) {
+            GridOccupied[row][column] = true;
+        }
+    }
+
+    std::function<void(int, int)> Walk = [&] (int row, int column) {
+        GridOccupied[row][column] = false;
+        while (true) {
+            TArray<int> validDirections;
+            for (int dir = 0; dir < 4; ++dir) {
+                int nRow = row + DX[dir];
+                int nColumn = column + DY[dir];
+                int nnRow = row + 2 * DX[dir];
+                int nnColumn = column + 2 * DY[dir];
+                if (!IsValidCell(nnRow, nnColumn) || !GridOccupied[nnRow][nnColumn]) {
+                    continue;
+                }
+                if (IsBorderCell(nnRow, nnColumn)) {
+                    continue;
+                }
+                validDirections.Add(dir);
+            }
+            if (validDirections.Num() == 0) {
+                break;
+            }
+            int dirId = RandomStream.RandRange(0, validDirections.Num() - 1);
+            int dir = validDirections[dirId];
+            int nRow = row + DX[dir];
+            int nColumn = column + DY[dir];
+            GridOccupied[nRow][nColumn] = false;
+            int nnRow = row + 2 * DX[dir];
+            int nnColumn = column + 2 * DY[dir];
+            Walk(nnRow, nnColumn);
+        }
+    };
+
+    Walk(1, 1);
+}
+
+void ALevelGeneratorActor::SpawnMaze()
+{
+    FString Maze;
+    for (int row = 0; row < GridRows; ++row) {
+        for (int column = 0; column < GridColumns; ++column) {
+            if (GridOccupied[row][column]) {
+                Maze += '#';
+                FIntVector Cell(row, column, 0);
+                SpawnWall(GetCellLocation(Cell));
+            } else {
+                Maze += '*';
+            }
+        }
+        Maze += '\n';
+    }
+    UE_LOG(LogTemp, Warning, TEXT("\n%s"), *Maze);
+}
+
+FIntVector ALevelGeneratorActor::GenerateRandomCell() const
+{
     int RandomRow;
     int RandomColumn;
     do {
@@ -93,18 +188,19 @@ FVector ALevelGeneratorActor::GenerateRandomLocation()
         RandomColumn = RandomStream.RandRange(0, GridColumns - 1);
     } while (GridOccupied[RandomRow][RandomColumn]);
 
-    GridOccupied[RandomRow][RandomColumn] = true;
-
-    FVector RandomLocation;
-    RandomLocation.X = GridOrigin.X + RandomRow * CellHeight;
-    RandomLocation.Y = GridOrigin.Y + RandomColumn * CellWidth;
-    RandomLocation.Z = GridOrigin.Z;
-
-    // Return the random spawn location
-    return RandomLocation;
+    return FIntVector(RandomRow, RandomColumn, 0);
 }
 
-void ALevelGeneratorActor::SpawnWall()
+FVector ALevelGeneratorActor::GetCellLocation(FIntVector Cell) const
+{
+    FVector Location;
+    Location.X = GridOrigin.X + Cell.X * CellHeight;
+    Location.Y = GridOrigin.Y + Cell.Y * CellWidth;
+    Location.Z = GridOrigin.Z;
+    return Location;
+}
+
+void ALevelGeneratorActor::SpawnWall(FVector SpawnLocation)
 {
     UWorld* const World = GetWorld();
     if (!World) {
@@ -115,10 +211,9 @@ void ALevelGeneratorActor::SpawnWall()
     SpawnParams.Owner = this;
     SpawnParams.Instigator = Instigator;
 
-    FVector SpawnLocation(GenerateRandomLocation());
     FRotator SpawnRotation(0.f, 0.f, 0.f);
 
-    UE_LOG(LogTemp, Warning, TEXT("Spawned house actor at %s"), *SpawnLocation.ToString());
+    UE_LOG(LogTemp, Warning, TEXT("Spawned wall actor at %s"), *SpawnLocation.ToString());
     AActor* Actor = World->SpawnActor<AActor>(WallActor, SpawnLocation, SpawnRotation, SpawnParams);
     FVector Origin;
     FVector BoxExtent;
