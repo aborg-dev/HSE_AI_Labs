@@ -25,10 +25,14 @@ void APizzaHUD::DrawHUD()
 
     auto* MyGameMode = Cast<ALab_1GameMode>(UGameplayStatics::GetGameMode(this));
 
+    double percentile = 0.9;
+
     TArray<FString> Messages;
-    Messages.Add(FString::Printf(TEXT("Pending pizza order count %d"), MyGameMode->GetPendingPizzaOrderCount()));
-    Messages.Add(FString::Printf(TEXT("Delivered pizza order count %d"), MyGameMode->GetDeliveredPizzaOrderCount()));
-    Messages.Add(FString::Printf(TEXT("Delivered pizza average wait time %.3f"), MyGameMode->GetDeliveredPizzaAverageWaitTime()));
+    Messages.Add(FString::Printf(TEXT("Pending orders: %d"), MyGameMode->GetPendingPizzaOrderCount()));
+    Messages.Add(FString::Printf(TEXT("Delivered orders: %d"), MyGameMode->GetDeliveredPizzaOrderCount()));
+    Messages.Add(FString::Printf(TEXT("%d-percentile wait time %.3f"),
+        static_cast<int>(100 * percentile),
+        MyGameMode->GetDeliveredPizzaPercentileWaitTime(percentile)));
 
     float yShift = 0;
     for (int i = 0 ; i < Messages.Num(); ++i) {

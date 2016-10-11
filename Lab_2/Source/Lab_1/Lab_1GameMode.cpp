@@ -7,6 +7,9 @@
 #include "PizzaHUD.h"
 #include "HouseActor.h"
 
+#include <vector>
+#include <algorithm>
+
 ALab_1GameMode::ALab_1GameMode()
 {
     // Set the default HUD class to be used in game.
@@ -129,6 +132,22 @@ float ALab_1GameMode::GetDeliveredPizzaAverageWaitTime() const
     return DeliveredPizzaWaitTime / DeliveredPizzaOrderCount;
 }
 
+float ALab_1GameMode::GetDeliveredPizzaPercentileWaitTime(float percentile) const
+{
+    int OrderCount = DeliveredPizzaWaitTimes.Num();
+    if (OrderCount == 0) {
+        return 0.0;
+    }
+    int K = FMath::Min(OrderCount, 100);
+    std::vector<float> times(K);
+    for (int i = OrderCount - 1; i >= OrderCount - K; --i) {
+        times[i - OrderCount + K] = DeliveredPizzaWaitTimes[i];
+    }
+    int PercentilePos = percentile * K;
+    std::nth_element(times.begin(), times.begin() + PercentilePos, times.end());
+    return times[PercentilePos];
+}
+
 void ALab_1GameMode::SpawnPizza()
 {
     if (Houses.Num() == 0) {
@@ -180,6 +199,7 @@ void ALab_1GameMode::RemoveOrder(int OrderNumber)
     }
     if (Index != PizzaOrders.Num()) {
         DeliveredPizzaWaitTime += PizzaOrders[Index]->CurrentWaitTime;
+        DeliveredPizzaWaitTimes.Add(PizzaOrders[Index]->CurrentWaitTime);
         PizzaOrders.RemoveAtSwap(Index);
     } else {
         UE_LOG(LogTemp, Warning, TEXT("Failed to remove non-exising order %d"), OrderNumber);

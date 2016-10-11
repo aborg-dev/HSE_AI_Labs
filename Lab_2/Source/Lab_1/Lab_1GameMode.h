@@ -47,6 +47,8 @@ public:
 
     float GetDeliveredPizzaAverageWaitTime() const;
 
+    float GetDeliveredPizzaPercentileWaitTime(float percentile) const;
+
     // Returns current game state.
     ELab_1PlayState GetCurrentState() const;
 
@@ -100,6 +102,8 @@ private:
     int DeliveredPizzaOrderCount;
 
     float DeliveredPizzaWaitTime;
+
+    TArray<float> DeliveredPizzaWaitTimes;
 
     void SpawnPizza();
 
