@@ -17,6 +17,7 @@ ALab_1GameMode::ALab_1GameMode()
 
     TotalPizzaOrderCount = 0;
     DeliveredPizzaOrderCount = 0;
+    DeliveredPizzaWaitTime = 0.0f;
 }
 
 void ALab_1GameMode::BeginPlay()
@@ -120,6 +121,14 @@ int ALab_1GameMode::GetDeliveredPizzaOrderCount() const
     return DeliveredPizzaOrderCount;
 }
 
+float ALab_1GameMode::GetDeliveredPizzaAverageWaitTime() const
+{
+    if (DeliveredPizzaOrderCount == 0) {
+        return 0.0;
+    }
+    return DeliveredPizzaWaitTime / DeliveredPizzaOrderCount;
+}
+
 void ALab_1GameMode::SpawnPizza()
 {
     if (Houses.Num() == 0) {
@@ -170,6 +179,7 @@ void ALab_1GameMode::RemoveOrder(int OrderNumber)
         }
     }
     if (Index != PizzaOrders.Num()) {
+        DeliveredPizzaWaitTime += PizzaOrders[Index]->CurrentWaitTime;
         PizzaOrders.RemoveAtSwap(Index);
     } else {
         UE_LOG(LogTemp, Warning, TEXT("Failed to remove non-exising order %d"), OrderNumber);
