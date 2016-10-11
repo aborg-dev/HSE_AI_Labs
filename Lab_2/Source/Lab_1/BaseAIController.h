@@ -27,6 +27,8 @@ public:
 
     float GetDistanceToDestination(const FVector DestLocation);
 
+    float GetDistanceBetween(const FVector SrcLocation, const FVector DestLocation);
+
     bool TryDeliverPizza(int OrderNumber);
 
     bool TryGrabPizza();

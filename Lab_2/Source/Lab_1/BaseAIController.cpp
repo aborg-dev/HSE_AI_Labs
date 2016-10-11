@@ -50,13 +50,19 @@ void ABaseAIController::SetNewMoveDestination(const FVector DestLocation)
 	}
 }
 
+float ABaseAIController::GetDistanceBetween(const FVector SrcLocation, const FVector DestLocation)
+{
+    UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
+    float PathLength = 0.0f;
+    NavSys->GetPathLength(SrcLocation, DestLocation, PathLength);
+    return PathLength;
+}
+
 float ABaseAIController::GetDistanceToDestination(const FVector DestLocation)
 {
 	APawn* const Pawn = GetPawn();
-	if (Pawn)
-	{
-		UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
-		return FVector::Dist(DestLocation, Pawn->GetActorLocation());
+	if (Pawn) {
+        return GetDistanceBetween(Pawn->GetActorLocation(), DestLocation);
 	}
     return 0.0f;
 }
