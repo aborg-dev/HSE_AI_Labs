@@ -9,16 +9,6 @@
 
 ALab_1GameMode::ALab_1GameMode()
 {
-	// use our custom PlayerController class
-	PlayerControllerClass = ALab_1PlayerController::StaticClass();
-
-	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/GameContent/TopDownCPP/Blueprints/TopDownCharacter"));
-	if (PlayerPawnBPClass.Class != NULL)
-	{
-		DefaultPawnClass = PlayerPawnBPClass.Class;
-	}
-
     // Set the default HUD class to be used in game.
     HUDClass = APizzaHUD::StaticClass();
 
