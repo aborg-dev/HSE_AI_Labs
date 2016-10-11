@@ -116,3 +116,8 @@ ABaseAIController* ALab_3GameMode::GetControllerById(int ControllerId)
     }
     return Controllers[ControllerId];
 }
+
+float ALab_3GameMode::GetTimePassed() const
+{
+    return TimePassed;
+}
