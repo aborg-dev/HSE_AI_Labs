@@ -46,6 +46,8 @@ public:
 
     ABaseAIController* GetControllerById(int ControllerId);
 
+    float GetTimePassed() const;
+
 private:
     FVector WorldOrigin;
     FVector WorldSize;
@@ -56,6 +58,8 @@ private:
     ELab_3PlayState CurrentState;
 
     FRandomStream RandomStream;
+
+    float TimePassed;
 
     // Handles game state changes.
     void HandleNewState(ELab_3PlayState NewState);

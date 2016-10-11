@@ -4,19 +4,25 @@
 #include "Lab_3GameMode.h"
 #include "Lab_3PlayerController.h"
 #include "Lab_3Character.h"
+#include "MazeHUD.h"
 
 ALab_3GameMode::ALab_3GameMode()
 {
     // TODO: Get rid of player contoller
-	// use our custom PlayerController class
-	PlayerControllerClass = ALab_3PlayerController::StaticClass();
+    // use our custom PlayerController class
+    PlayerControllerClass = ALab_3PlayerController::StaticClass();
 
-	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/TopDownCPP/Blueprints/TopDownCharacter"));
-	if (PlayerPawnBPClass.Class != NULL)
-	{
-		DefaultPawnClass = PlayerPawnBPClass.Class;
-	}
+    // set default pawn class to our Blueprinted character
+    static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/TopDownCPP/Blueprints/TopDownCharacter"));
+    if (PlayerPawnBPClass.Class != NULL)
+    {
+        DefaultPawnClass = PlayerPawnBPClass.Class;
+    }
+
+    // Set the default HUD class to be used in game.
+    HUDClass = AMazeHUD::StaticClass();
+
+    TimePassed = 0.0f;
 }
 
 void ALab_3GameMode::BeginPlay()
@@ -67,6 +73,7 @@ void ALab_3GameMode::Tick(float DeltaSeconds)
     if (CurrentState == ELab_3PlayState::EGameOver) {
         return;
     }
+    TimePassed += DeltaSeconds;
 }
 
 FVector ALab_3GameMode::GetWorldOrigin() const
