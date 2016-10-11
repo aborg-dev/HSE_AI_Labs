@@ -21,7 +21,10 @@ public:
 
     void BeginPlay() override;
 
-    /** Navigate player to the given world location. */
+    // Returns true if character can see destination
+    bool CheckVisibility(const FVector DestLocation);
+
+    // Navigate player to the given world location
     void SetNewMoveDestination(const FVector DestLocation);
 
     float GetCharacterMaxSpeed();

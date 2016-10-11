@@ -6,6 +6,7 @@
 #include "Runtime/Engine/Classes/Components/DecalComponent.h"
 #include "Kismet/HeadMountedDisplayFunctionLibrary.h"
 #include "Lab_3Character.h"
+#include "StaticLibrary.h"
 
 ALab_3PlayerController::ALab_3PlayerController()
 {
@@ -86,18 +87,25 @@ void ALab_3PlayerController::MoveToTouchLocation(const ETouchIndex::Type FingerI
 
 void ALab_3PlayerController::SetNewMoveDestination(const FVector DestLocation)
 {
-	APawn* const MyPawn = GetPawn();
-	if (MyPawn)
-	{
-		UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
-		float const Distance = FVector::Dist(DestLocation, MyPawn->GetActorLocation());
+    APawn* const MyPawn = GetPawn();
+    if (MyPawn)
+    {
+        UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
 
-		// We need to issue move command only if far enough in order for walk animation to play correctly
-		if (NavSys && (Distance > 120.0f))
-		{
-			NavSys->SimpleMoveToLocation(this, DestLocation);
-		}
-	}
+        FHitResult HitData(ForceInit);
+        if (UStaticLibrary::Trace(GetWorld(), MyPawn, MyPawn->GetActorLocation(), DestLocation, HitData)) {
+            UE_LOG(LogTemp, Warning, TEXT("Can't see the movement point"));
+            return;
+        }
+
+        float const Distance = FVector::Dist(DestLocation, MyPawn->GetActorLocation());
+
+        // We need to issue move command only if far enough in order for walk animation to play correctly
+        if (NavSys && (Distance > 120.0f))
+        {
+            NavSys->SimpleMoveToLocation(this, DestLocation);
+        }
+    }
 }
 
 void ALab_3PlayerController::OnSetDestinationPressed()

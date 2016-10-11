@@ -7,6 +7,7 @@
 #include "BaseAIController.h"
 #include "Lab_3GameMode.h"
 #include "Lab_3Character.h"
+#include "StaticLibrary.h"
 
 
 ABaseAIController::ABaseAIController()
@@ -29,6 +30,16 @@ void ABaseAIController::Tick(float DeltaSeconds)
 {
 }
 
+bool ABaseAIController::CheckVisibility(const FVector DestLocation)
+{
+    APawn* const Pawn = GetPawn();
+    if (Pawn) {
+        FHitResult HitData(ForceInit);
+        return !UStaticLibrary::Trace(GetWorld(), Pawn, Pawn->GetActorLocation(), DestLocation, HitData);
+    }
+    return false;
+}
+
 void ABaseAIController::SetNewMoveDestination(const FVector DestLocation)
 {
     auto* MyGameMode = GetGameMode();
@@ -36,21 +47,22 @@ void ABaseAIController::SetNewMoveDestination(const FVector DestLocation)
         return;
     }
 
-	APawn* const Pawn = GetPawn();
-	if (Pawn)
-	{
-        // TODO: Rewrite this.
-        /*
-		UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
-		float const Distance = FVector::Dist(DestLocation, Pawn->GetActorLocation());
+    APawn* const Pawn = GetPawn();
+    if (Pawn) {
+        FHitResult HitData(ForceInit);
+        if (UStaticLibrary::Trace(GetWorld(), Pawn, Pawn->GetActorLocation(), DestLocation, HitData)) {
+            return;
+        }
 
-		// We need to issue move command only if far enough in order for walk animation to play correctly
-		if (NavSys && (Distance > 120.0f))
-		{
-			NavSys->SimpleMoveToLocation(this, DestLocation);
-		}
-        */
-	}
+        UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
+        float const Distance = FVector::Dist(DestLocation, Pawn->GetActorLocation());
+
+        // We need to issue move command only if far enough in order for walk animation to play correctly
+        if (NavSys && (Distance > 120.0f))
+        {
+            NavSys->SimpleMoveToLocation(this, DestLocation);
+        }
+    }
 }
 
 ALab_3GameMode* ABaseAIController::GetGameMode()
