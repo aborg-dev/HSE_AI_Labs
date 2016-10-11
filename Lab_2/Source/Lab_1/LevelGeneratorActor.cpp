@@ -62,7 +62,10 @@ void ALevelGeneratorActor::CollectWorldParameters()
             UE_LOG(LogTemp, Warning, TEXT("Grid rows: %d, Grid columns: %d"), GridRows, GridColumns);
         }
     }
-    GridOccupied.resize(GridRows, std::vector<char>(GridColumns, false));
+    GridOccupied.SetNum(GridRows);
+    for (int i = 0; i < GridRows; ++i) {
+        GridOccupied[i].SetNumZeroed(GridColumns);
+    }
 }
 
 void ALevelGeneratorActor::DeleteOldActors()
