@@ -45,5 +45,5 @@ protected:
     float MasterDecisionTimer;
 
     static constexpr int MASTER_ID = 0;
-    static constexpr float MASTER_DECISION_PERIOD = 0.2f;
+    static constexpr float MASTER_DECISION_PERIOD = 0.1f;
 };

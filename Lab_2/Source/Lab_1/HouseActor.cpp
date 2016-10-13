@@ -57,6 +57,11 @@ void AHouseActor::Tick( float DeltaTime )
     }
 }
 
+int AHouseActor::GetHouseIndex() const
+{
+    return HouseIndex;
+}
+
 void AHouseActor::SetHouseIndex(int Index)
 {
     HouseIndex = Index;
@@ -99,6 +104,7 @@ void AHouseActor::OnPizzaDelivered(int OrderNumber)
         return;
     }
 
+    UE_LOG(LogTemp, Warning, TEXT("Order %d delivered to house %d"), OrderNumber, HouseIndex);
     PizzaOrders.RemoveAtSwap(Index);
     if (!PizzaOrders.Num()) {
         TogglePizzaDeliveryHighlight();

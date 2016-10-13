@@ -21,6 +21,8 @@ public:
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
+    int GetHouseIndex() const;
+
     void SetHouseIndex(int Index);
 
     bool WaitsPizzaDelivery() const;

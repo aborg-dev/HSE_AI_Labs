@@ -69,6 +69,7 @@ void ACleverAIController::ActAsMaster()
             auto distance = GetDistanceBetween(controllerLocation, orderLocation);
             auto time = GetTimeToCoverDistance(distance);
             controllerOrderServeTimes.Add(ControllerOrderServeTime(time, orderIndex, controllerId));
+
         }
     }
     controllerOrderServeTimes.Sort();
@@ -94,6 +95,9 @@ void ACleverAIController::ActAsMaster()
         auto distance = GetDistanceBetween(currentControllerLocations[controllerId], orderLocation);
         auto time = GetTimeToCoverDistance(distance);
         auto nextControllerTime = currentControllerTravelTime[controllerId] + time;
+
+        UE_LOG(LogTemp, Warning, TEXT("%d -> %d: %.3f"), controllerId, orders[orderIndex].OrderNumber, distance);
+
         if (assignedControllerOrders[controllerId].Num() > 0 && nextControllerTime > 10) {
             continue;
         }
@@ -101,8 +105,6 @@ void ACleverAIController::ActAsMaster()
         currentControllerTravelTime[controllerId] = nextControllerTime;
         currentControllerLocations[controllerId] = orderLocation;
         ServedOrders.Add(orderIndex);
-
-        UE_LOG(LogTemp, Warning, TEXT("Adding order %d for controller %d with time %.3f"), orders[orderIndex].OrderNumber, controllerId, nextControllerTime);
 
         if (assignedControllerOrders[controllerId].Num() == 1) {
             ++assignedControllers;
@@ -114,7 +116,6 @@ void ACleverAIController::ActAsMaster()
 
     for (int controllerId = 0; controllerId < controllers.Num(); ++controllerId) {
         const auto& controllerOrders = assignedControllerOrders[controllerId];
-        //UE_LOG(LogTemp, Warning, TEXT("Total controller %d orders: %d"), controllerId, controllerOrders.Num());
         if (controllerOrders.Num() > 0) {
             controllers[controllerId]->SetPendingOrderNumber(orders[controllerOrders[0]].OrderNumber);
         }
@@ -161,7 +162,6 @@ void ACleverAIController::ActAsWorker()
 
 void ACleverAIController::SetPendingOrderNumber(int OrderNumber)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Set pending order %d for controller %d"), OrderNumber, ControllerId);
     PendingOrderNumber = OrderNumber;
 }
 

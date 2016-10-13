@@ -36,18 +36,19 @@ void ABaseAIController::SetNewMoveDestination(const FVector DestLocation)
         return;
     }
 
-	APawn* const Pawn = GetPawn();
-	if (Pawn)
-	{
-		UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
-		float const Distance = FVector::Dist(DestLocation, Pawn->GetActorLocation());
+    APawn* const Pawn = GetPawn();
+    if (Pawn)
+    {
+        UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
+        auto SrcLocation = Pawn->GetActorLocation();
+        float const Distance = FVector::Dist(SrcLocation, DestLocation);
 
-		// We need to issue move command only if far enough in order for walk animation to play correctly
-		if (NavSys && (Distance > 120.0f))
-		{
-			MoveToLocation(DestLocation, 0, 0, 1);
-		}
-	}
+        // We need to issue move command only if far enough in order for walk animation to play correctly
+        if (NavSys && (Distance > 120.0f))
+        {
+            NavSys->SimpleMoveToLocation(this, DestLocation);
+        }
+    }
 }
 
 float ABaseAIController::GetDistanceBetween(const FVector SrcLocation, const FVector DestLocation)
@@ -59,7 +60,7 @@ float ABaseAIController::GetDistanceToDestination(const FVector DestLocation)
 {
 	APawn* const Pawn = GetPawn();
 	if (Pawn) {
-        return GetDistanceBetween(Pawn->GetActorLocation(), DestLocation);
+		return FVector::Dist(Pawn->GetActorLocation(), DestLocation);
 	}
     return 0.0f;
 }
