@@ -65,11 +65,14 @@ void ACleverAIController::ActAsMaster()
     for (int controllerId = 0; controllerId < controllerLocations.Num(); ++controllerId) {
         for (int orderIndex = 0; orderIndex < orders.Num(); ++orderIndex) {
             auto& controllerLocation = controllerLocations[controllerId];
-            auto& orderLocation = houseLocations[orders[orderIndex].HouseNumber];
+            int houseNumber = orders[orderIndex].HouseNumber;
+            auto& orderLocation = houseLocations[houseNumber];
             auto distance = GetDistanceBetween(controllerLocation, orderLocation);
-            auto time = GetTimeToCoverDistance(distance);
+            if (distance < 300.0f) {
+                distance = -1e6;
+            }
+            auto time = GetTimeToCoverDistance(distance) - orders[orderIndex].CurrentWaitTime * orders[orderIndex].CurrentWaitTime;
             controllerOrderServeTimes.Add(ControllerOrderServeTime(time, orderIndex, controllerId));
-
         }
     }
     controllerOrderServeTimes.Sort();
