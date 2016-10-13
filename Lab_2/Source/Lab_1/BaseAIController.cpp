@@ -52,10 +52,7 @@ void ABaseAIController::SetNewMoveDestination(const FVector DestLocation)
 
 float ABaseAIController::GetDistanceBetween(const FVector SrcLocation, const FVector DestLocation)
 {
-    UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
-    float PathLength = 0.0f;
-    NavSys->GetPathLength(SrcLocation, DestLocation, PathLength);
-    return PathLength;
+    return FVector::Dist(SrcLocation, DestLocation);
 }
 
 float ABaseAIController::GetDistanceToDestination(const FVector DestLocation)

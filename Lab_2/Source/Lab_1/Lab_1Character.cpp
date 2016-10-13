@@ -25,7 +25,7 @@ ALab_1Character::ALab_1Character()
     // Create collection sphere and set it's default radius.
     DeliverySphere = CreateDefaultSubobject<USphereComponent>(TEXT("DeliverySphere"));
     DeliverySphere->SetupAttachment(RootComponent);
-    DeliverySphere->SetSphereRadius(100.0f);
+    DeliverySphere->SetSphereRadius(200.0f);
 
 	// Create a camera boom...
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));

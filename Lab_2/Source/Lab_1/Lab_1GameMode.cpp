@@ -138,7 +138,7 @@ float ALab_1GameMode::GetDeliveredPizzaPercentileWaitTime(float percentile) cons
     if (OrderCount == 0) {
         return 0.0;
     }
-    int K = FMath::Min(OrderCount, 100);
+    int K = FMath::Min(OrderCount, 1000);
     std::vector<float> times(K);
     for (int i = OrderCount - 1; i >= OrderCount - K; --i) {
         times[i - OrderCount + K] = DeliveredPizzaWaitTimes[i];
