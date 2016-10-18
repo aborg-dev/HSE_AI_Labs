@@ -27,7 +27,7 @@ public:
     UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Level)
     UStaticMeshComponent* ExitMesh;
 
-    static constexpr float EscapeRadius = 300.0f;
+    static constexpr float EscapeRadius = 150.0f;
 
 private:
     int ExitIndex;
