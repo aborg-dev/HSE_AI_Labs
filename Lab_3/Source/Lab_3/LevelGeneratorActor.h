@@ -5,6 +5,15 @@
 #include "GameFramework/Actor.h"
 #include "LevelGeneratorActor.generated.h"
 
+class AMazeExit;
+
+enum class GridContent
+{
+    NONE,
+    WALL,
+    EXIT
+};
+
 UCLASS()
 class LAB_3_API ALevelGeneratorActor : public AActor
 {
@@ -28,6 +37,9 @@ public:
     UPROPERTY(EditAnywhere, Category = Spawning)
     TSubclassOf<class AActor> WallActor;
 
+    UPROPERTY(EditAnywhere, Category = Spawning)
+    TSubclassOf<class AMazeExit> ExitActor;
+
     // Number of house actors to spawn.
     UPROPERTY(EditAnywhere, Category = Spawning)
     int WallActorCount;
@@ -50,6 +62,10 @@ private:
 
     void SpawnWall(FVector SpawnLocation);
 
+    void SpawnExit(FVector SpawnLocation);
+
+    void SpawnActor(FVector SpawnLocation, FString Name, TSubclassOf<class AActor> ActorClass);
+
     FIntVector GenerateRandomCell() const;
 
     FVector GetCellLocation(FIntVector Cell) const;
@@ -60,6 +76,8 @@ private:
 
     bool HasOccupiedNeighbors(int row, int column) const;
 
+    bool HasFreeNeighbors(int row, int column) const;
+
     TArray<AActor*> SpawnedActors;
 
     FRandomStream RandomStream;
@@ -69,7 +87,7 @@ private:
 
     FVector WallActorBoxExtent;
 
-    TArray<TArray<bool>> GridOccupied;
+    TArray<TArray<GridContent>> Grid;
 
     FVector GridOrigin;
     float CellHeight;

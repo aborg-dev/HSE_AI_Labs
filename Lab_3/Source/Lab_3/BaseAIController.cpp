@@ -147,3 +147,21 @@ ABaseAIController* ABaseAIController::GetControllerById(int controllerId)
     }
     return MyGameMode->GetControllerById(controllerId);
 }
+
+TArray<FVector> ABaseAIController::GetExitLocations()
+{
+    auto* MyGameMode = GetGameMode();
+    if (!MyGameMode) {
+        return {};
+    }
+    return MyGameMode->GetExitLocations();
+}
+
+bool ABaseAIController::Escape(int ExitIndex)
+{
+    auto* MyGameMode = GetGameMode();
+    if (!MyGameMode) {
+        return false;
+    }
+    return MyGameMode->Escape(ExitIndex, ControllerId);
+}

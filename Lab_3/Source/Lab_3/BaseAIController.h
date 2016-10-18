@@ -43,7 +43,9 @@ public:
 
     ABaseAIController* GetControllerById(int controllerId);
 
-    // TODO: Add function to escape labyrinth
+    TArray<FVector> GetExitLocations();
+
+    bool Escape(int ExitIndex);
 
 protected:
     virtual void Tick(float DeltaSeconds) override;

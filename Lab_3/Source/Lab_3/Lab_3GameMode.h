@@ -48,11 +48,17 @@ public:
 
     float GetTimePassed() const;
 
+    TArray<FVector> GetExitLocations();
+
+    bool Escape(int ExitIndex, int ControllerId);
+
 private:
     FVector WorldOrigin;
     FVector WorldSize;
 
     TArray<ABaseAIController*> Controllers;
+
+    TArray<FVector> ExitLocations;
 
     // Stores current game state.
     ELab_3PlayState CurrentState;

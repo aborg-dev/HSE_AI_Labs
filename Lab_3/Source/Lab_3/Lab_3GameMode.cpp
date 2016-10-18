@@ -110,3 +110,13 @@ float ALab_3GameMode::GetTimePassed() const
 {
     return TimePassed;
 }
+
+TArray<FVector> ALab_3GameMode::GetExitLocations()
+{
+    return ExitLocations;
+}
+
+bool ALab_3GameMode::Escape(int ExitIndex, int ControllerId)
+{
+    return false;
+}
