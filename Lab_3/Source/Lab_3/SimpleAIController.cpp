@@ -9,6 +9,7 @@ ASimpleAIController::ASimpleAIController()
     ScaleDecayRate = 0.8f;
     MinAllowedScale = 1.0f;
 
+    bHasDirection = false;
     MovementDecisionPeriod = 1.0f;
     MovementDecisionTimer = 0.0f;
     PreviousLocation = GetCharacterLocation();
@@ -57,7 +58,6 @@ void ASimpleAIController::MoveInDirection(FVector direction)
     if (scale < MinAllowedScale) {
         bHasDirection = false;
     } else {
-        UE_LOG(LogTemp, Warning, TEXT("Moving to %s with scale %.3f"), *direction.ToString(), scale);
         PreviousLocation = currentLocation;
         SetNewMoveDestination(currentLocation + scale * direction);
     }
@@ -105,6 +105,7 @@ FVector ASimpleAIController::ChooseDirection()
     }
 
     if (!bFoundDirection) {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to found direction at %s"), *currentLocation.ToString());
         return GetRandomDirection();
     }
 
