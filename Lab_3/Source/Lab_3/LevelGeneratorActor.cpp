@@ -17,7 +17,7 @@ ALevelGeneratorActor::ALevelGeneratorActor()
     FloorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FloorMesh"));
     RootComponent = FloorMesh;
 
-    WallActorCount = 3;
+    CharacterActorCount = 1;
     RandomSeed = 42;
     EnableGeneration = false;
 }
@@ -81,7 +81,7 @@ void ALevelGeneratorActor::DeleteOldActors()
 
 void ALevelGeneratorActor::SpawnNewActors()
 {
-    if (WallActor && ExitActor) {
+    if (WallActor && ExitActor && CharacterActor) {
         GenerateMaze();
         SpawnMaze();
     }
@@ -128,7 +128,7 @@ bool ALevelGeneratorActor::HasFreeNeighbors(int row, int column) const
     return false;
 }
 
-void ALevelGeneratorActor::GenerateMaze()
+void ALevelGeneratorActor::GenerateWalls()
 {
     for (int row = 0; row < GridRows; ++row) {
         for (int column = 0; column < GridColumns; ++column) {
@@ -168,29 +168,56 @@ void ALevelGeneratorActor::GenerateMaze()
     };
 
     Walk(1, 1);
+}
 
+void ALevelGeneratorActor::GenerateExits()
+{
     // Generate exits
-    TArray<std::pair<int, int>> WallCandidates;
+    TArray<std::pair<int, int>> candidates;
     for (int row = 0; row < GridRows; ++row) {
         for (int column = 0; column < GridColumns; ++column) {
             if (IsBorderCell(row, column)
                 && Grid[row][column] == GridContent::WALL
                 && HasFreeNeighbors(row, column))
             {
-                WallCandidates.Add(std::make_pair(row, column));
+                candidates.Add(std::make_pair(row, column));
             }
         }
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("Wall candidates number: %d"), WallCandidates.Num());
+    UE_LOG(LogTemp, Warning, TEXT("Wall candidates number: %d"), candidates.Num());
 
-    if (WallCandidates.Num() == 0) {
+    if (candidates.Num() == 0) {
         return;
     }
 
-    int candidateId = RandomStream.RandRange(0, WallCandidates.Num() - 1);
-    auto candidate = WallCandidates[candidateId];
+    int candidateId = RandomStream.RandRange(0, candidates.Num() - 1);
+    auto candidate = candidates[candidateId];
     Grid[candidate.first][candidate.second] = GridContent::EXIT;
+}
+
+void ALevelGeneratorActor::GenerateCharacters()
+{
+    for (int i = 0; i < CharacterActorCount; ++i) {
+        TArray<std::pair<int, int>> candidates;
+        for (int row = 0; row < GridRows; ++row) {
+            for (int column = 0; column < GridColumns; ++column) {
+                if (Grid[row][column] == GridContent::NONE) {
+                    candidates.Add(std::make_pair(row, column));
+                }
+            }
+        }
+        int candidateId = RandomStream.RandRange(0, candidates.Num() - 1);
+        auto candidate = candidates[candidateId];
+        Grid[candidate.first][candidate.second] = GridContent::CHARACTER;
+    }
+}
+
+void ALevelGeneratorActor::GenerateMaze()
+{
+    GenerateWalls();
+    GenerateExits();
+    GenerateCharacters();
 }
 
 void ALevelGeneratorActor::SpawnMaze()
@@ -198,16 +225,29 @@ void ALevelGeneratorActor::SpawnMaze()
     FString Maze;
     for (int row = 0; row < GridRows; ++row) {
         for (int column = 0; column < GridColumns; ++column) {
-            if (Grid[row][column] == GridContent::WALL) {
-                Maze += '#';
-                FIntVector Cell(row, column, 0);
-                SpawnWall(GetCellLocation(Cell));
-            } else if (Grid[row][column] == GridContent::EXIT) {
-                Maze += 'O';
-                FIntVector Cell(row, column, 0);
-                SpawnExit(GetCellLocation(Cell));
-            } else if (Grid[row][column] == GridContent::NONE) {
-                Maze += '*';
+            switch (Grid[row][column]) {
+                case GridContent::WALL: {
+                    Maze += '#';
+                    FIntVector Cell(row, column, 0);
+                    SpawnWall(GetCellLocation(Cell));
+                    continue;
+                }
+                case GridContent::EXIT: {
+                    Maze += 'O';
+                    FIntVector Cell(row, column, 0);
+                    SpawnExit(GetCellLocation(Cell));
+                    continue;
+                }
+                case GridContent::CHARACTER: {
+                    Maze += 'C';
+                    FIntVector Cell(row, column, 0);
+                    SpawnCharacter(GetCellLocation(Cell));
+                    continue;
+                }
+                case GridContent::NONE: {
+                    Maze += '*';
+                    continue;
+                }
             }
         }
         Maze += '\n';
@@ -268,6 +308,11 @@ void ALevelGeneratorActor::SpawnWall(FVector SpawnLocation)
 void ALevelGeneratorActor::SpawnExit(FVector SpawnLocation)
 {
     SpawnActor(SpawnLocation, TEXT("Exit"), ExitActor);
+}
+
+void ALevelGeneratorActor::SpawnCharacter(FVector SpawnLocation)
+{
+    SpawnActor(SpawnLocation, TEXT("Character"), CharacterActor);
 }
 
 // Called when the game starts or when spawned
