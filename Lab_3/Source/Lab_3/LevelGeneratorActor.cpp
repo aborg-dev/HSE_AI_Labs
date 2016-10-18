@@ -171,7 +171,7 @@ void ALevelGeneratorActor::GenerateMaze()
     TArray<std::pair<int, int>> WallCandidates;
     for (int row = 0; row < GridRows; ++row) {
         for (int column = 0; column < GridColumns; ++column) {
-            if (IsBorderCell(row, column) 
+            if (IsBorderCell(row, column)
                 && Grid[row][column] == GridContent::WALL
                 && HasFreeNeighbors(row, column))
             {
