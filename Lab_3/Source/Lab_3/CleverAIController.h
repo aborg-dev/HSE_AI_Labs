@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BaseAIController.h"
+#include "NavGraph.h"
 #include "CleverAIController.generated.h"
 
 /**
@@ -20,5 +21,14 @@ public:
 
     void Tick(float DeltaSeconds) override;
 
+    UPROPERTY(EditAnywhere, Category = Movement)
+    float ChooseDirectionProbeCount;
+
+private:
+    NavGraph Graph;
+
+    bool bIsMoving;
+
+    void DiscoverNeighborhood();
 
 };
