@@ -66,8 +66,7 @@ void ABaseAIController::SetNewMoveDestination(FVector DestLocation)
         float const Distance = FVector::Dist(DestLocation, Pawn->GetActorLocation());
 
         // We need to issue move command only if far enough in order for walk animation to play correctly
-        if (NavSys && (Distance > 120.0f))
-        {
+        if (NavSys) {
             NavSys->SimpleMoveToLocation(this, DestLocation);
         }
     }
