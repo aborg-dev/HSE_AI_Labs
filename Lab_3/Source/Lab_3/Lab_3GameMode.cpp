@@ -8,17 +8,6 @@
 
 ALab_3GameMode::ALab_3GameMode()
 {
-    // TODO: Get rid of player contoller
-    // use our custom PlayerController class
-    PlayerControllerClass = ALab_3PlayerController::StaticClass();
-
-    // set default pawn class to our Blueprinted character
-    static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/TopDownCPP/Blueprints/TopDownCharacter"));
-    if (PlayerPawnBPClass.Class != NULL)
-    {
-        DefaultPawnClass = PlayerPawnBPClass.Class;
-    }
-
     // Set the default HUD class to be used in game.
     HUDClass = AMazeHUD::StaticClass();
 

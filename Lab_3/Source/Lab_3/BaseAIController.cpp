@@ -28,6 +28,7 @@ void ABaseAIController::BeginPlay()
 
 void ABaseAIController::Tick(float DeltaSeconds)
 {
+    Super::Tick(DeltaSeconds);
 }
 
 bool ABaseAIController::CheckVisibility(FVector DestLocation)
