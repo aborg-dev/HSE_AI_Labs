@@ -54,4 +54,6 @@ private:
     FVector GetRandomDirection();
 
     FVector ChooseDirection();
+
+    bool TryEscape();
 };

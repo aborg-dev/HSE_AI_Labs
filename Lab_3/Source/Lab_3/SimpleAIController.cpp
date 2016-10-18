@@ -3,6 +3,8 @@
 #include "Lab_3.h"
 #include "SimpleAIController.h"
 
+#include "MazeExit.h"
+
 ASimpleAIController::ASimpleAIController()
 {
     InitialScale = 100.0f;
@@ -28,6 +30,10 @@ void ASimpleAIController::Tick(float DeltaSeconds)
 
     MovementDecisionTimer += DeltaSeconds;
 
+    if (TryEscape()) {
+        return;
+    }
+
     if (!bHasDirection || MovementDecisionTimer > MovementDecisionPeriod) {
         if (!bHasDirection) {
             Direction = ChooseDirection();
@@ -39,6 +45,23 @@ void ASimpleAIController::Tick(float DeltaSeconds)
             MovementDecisionTimer -= MovementDecisionPeriod;
         }
     }
+}
+
+bool ASimpleAIController::TryEscape()
+{
+    auto exitLocations = GetExitLocations();
+    auto currentLocation = GetCharacterLocation();
+    for (int exitIndex = 0; exitIndex < exitLocations.Num(); ++exitIndex) {
+        const auto& location = exitLocations[exitIndex];
+        auto distance = (currentLocation - location).Size();
+        if (distance < AMazeExit::EscapeRadius) {
+            bool bSuccess = Escape(exitIndex);
+            if (bSuccess) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 float ASimpleAIController::GetDirectionScale(FVector direction)
