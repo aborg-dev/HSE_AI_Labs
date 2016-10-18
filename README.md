@@ -15,7 +15,7 @@ Repository for HSE AI class labs
   * Collision detection
   * Game modes
   * HUDs
-  
-* Lab_1: Signle AI controller for optimizing pizza delivery
+
+* Lab_1: Single AI controller for optimizing pizza delivery
 * Lab_2: Cooperative pizza delivery system
 * Lab_3: Cooperative maze solving
