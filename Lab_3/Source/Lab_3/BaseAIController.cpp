@@ -13,6 +13,7 @@
 ABaseAIController::ABaseAIController()
 {
     ControllerId = -1;
+    bEscaped = false;
 }
 
 void ABaseAIController::BeginPlay()
@@ -44,6 +45,10 @@ bool ABaseAIController::CheckVisibility(FVector DestLocation)
 
 void ABaseAIController::SetNewMoveDestination(FVector DestLocation)
 {
+    if (bEscaped) {
+        return;
+    }
+
     auto* MyGameMode = GetGameMode();
     if (MyGameMode->GetCurrentState() == ELab_3PlayState::EGameOver) {
         return;
@@ -159,9 +164,17 @@ TArray<FVector> ABaseAIController::GetExitLocations()
 
 bool ABaseAIController::Escape(int ExitIndex)
 {
+    if (bEscaped) {
+        return false;
+    }
+
     auto* MyGameMode = GetGameMode();
     if (!MyGameMode) {
         return false;
     }
-    return MyGameMode->Escape(ExitIndex, ControllerId);
+    bool bSuccess = MyGameMode->Escape(ExitIndex, ControllerId);
+    if (bSuccess) {
+        bEscaped = true;
+    }
+    return bSuccess;
 }

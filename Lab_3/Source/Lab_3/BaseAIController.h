@@ -57,4 +57,6 @@ private:
 
     ALab_3Character* GetCharacter();
 
+    bool bEscaped;
+
 };

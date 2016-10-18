@@ -10,7 +10,7 @@ class LAB_3_API AMazeExit : public AActor
 {
     GENERATED_BODY()
 
-public:	
+public:
     // Sets default values for this actor's properties
     AMazeExit();
 
@@ -20,7 +20,16 @@ public:
     // Called every frame
     virtual void Tick( float DeltaSeconds ) override;
 
+    void SetExitIndex(int index);
+
+    bool TryEscape(FVector characterLocation);
+
     UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Level)
     UStaticMeshComponent* ExitMesh;
+
+private:
+    int ExitIndex;
+
+    static constexpr float EscapeRadius = 300.0f;
 
 };

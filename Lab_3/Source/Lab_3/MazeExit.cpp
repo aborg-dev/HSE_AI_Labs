@@ -12,19 +12,29 @@ AMazeExit::AMazeExit()
 
     ExitMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExitMesh"));
     RootComponent = ExitMesh;
+
+    ExitIndex = -1;
 }
 
 // Called when the game starts or when spawned
 void AMazeExit::BeginPlay()
 {
     Super::BeginPlay();
-
 }
 
 // Called every frame
 void AMazeExit::Tick( float DeltaTime )
 {
     Super::Tick( DeltaTime );
-
 }
 
+void AMazeExit::SetExitIndex(int index)
+{
+    ExitIndex = index;
+}
+
+bool AMazeExit::TryEscape(FVector characterLocation)
+{
+    float distance = (GetActorLocation() - characterLocation).Size();
+    return (distance < EscapeRadius);
+}

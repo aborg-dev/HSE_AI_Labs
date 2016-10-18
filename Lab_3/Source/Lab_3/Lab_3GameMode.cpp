@@ -5,6 +5,8 @@
 #include "Lab_3PlayerController.h"
 #include "Lab_3Character.h"
 #include "MazeHUD.h"
+#include "MazeExit.h"
+#include "BaseAIController.h"
 
 ALab_3GameMode::ALab_3GameMode()
 {
@@ -19,9 +21,37 @@ void ALab_3GameMode::BeginPlay()
     // Don't forget to call parent BeginPlay() method.
     Super::BeginPlay();
 
+    DiscoverExits();
+
     RandomStream.Initialize(42);
     // Transition the game into playing state.
     SetCurrentState(ELab_3PlayState::EPlaying);
+
+    EscapedControllerCount = 0;
+}
+
+void ALab_3GameMode::DiscoverExits()
+{
+    // Find all exit actors.
+    TArray<AActor*> FoundActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMazeExit::StaticClass(), FoundActors);
+    for (auto Actor : FoundActors) {
+        AMazeExit* ExitActor = Cast<AMazeExit>(Actor);
+        // If the actor indeed belongs to MazeExit, remember it.
+        if (ExitActor) {
+            Exits.Emplace(ExitActor, ExitActor->GetActorLocation(), ExitActor->GetName());
+        }
+    }
+    UE_LOG(LogTemp, Warning, TEXT("Registered %d exits"), Exits.Num());
+    Exits.Sort([] (const Exit& lhs, const Exit& rhs) {
+        return lhs.Name < rhs.Name;
+    });
+
+    for (int Index = 0; Index < Exits.Num(); ++Index) {
+        auto* Actor = Exits[Index].Actor;
+        Actor->SetExitIndex(Index);
+        UE_LOG(LogTemp, Warning, TEXT("Exit %d: %s"), Index, *Actor->GetName());
+    }
 }
 
 ELab_3PlayState ALab_3GameMode::GetCurrentState() const {
@@ -89,6 +119,7 @@ int ALab_3GameMode::RegisterController(ABaseAIController* Controller)
 {
     int ControllerId = Controllers.Num();
     Controllers.Add(Controller);
+    bControllerEscaped.Add(false);
     return ControllerId;
 }
 
@@ -113,10 +144,40 @@ float ALab_3GameMode::GetTimePassed() const
 
 TArray<FVector> ALab_3GameMode::GetExitLocations()
 {
-    return ExitLocations;
+    TArray<FVector> exitLocations;
+    for (const auto& exit : Exits) {
+        exitLocations.Add(exit.Location);
+    }
+    return exitLocations;
 }
 
-bool ALab_3GameMode::Escape(int ExitIndex, int ControllerId)
+bool ALab_3GameMode::Escape(int exitIndex, int controllerId)
 {
-    return false;
+    if (controllerId >= Controllers.Num()) {
+        UE_LOG(LogTemp, Error, TEXT("Controller id is greater or equal to the number of controllers: %d >= %d"), controllerId, Controllers.Num());
+        return false;
+    }
+
+    if (bControllerEscaped[controllerId]) {
+        UE_LOG(LogTemp, Error, TEXT("Controller %d has already escaped"), controllerId);
+        return false;
+    }
+
+    if (exitIndex >= Exits.Num()) {
+        UE_LOG(LogTemp, Error, TEXT("Exit index is greater or equal to the number of exits: %d >= %d"), exitIndex, Exits.Num());
+        return false;
+    }
+
+    auto characterLocation = Controllers[controllerId]->GetCharacterLocation();
+    auto bEscaped = Exits[exitIndex].Actor->TryEscape(characterLocation);
+    if (bEscaped) {
+        UE_LOG(LogTemp, Error, TEXT("Controller %d has escaped"), controllerId);
+        ++EscapedControllerCount;
+        bControllerEscaped[controllerId] = true;
+
+        if (EscapedControllerCount == Controllers.Num()) {
+            SetCurrentState(ELab_3PlayState::EGameOver);
+        }
+    }
+    return bEscaped;
 }

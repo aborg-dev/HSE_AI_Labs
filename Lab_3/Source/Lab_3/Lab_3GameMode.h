@@ -12,6 +12,7 @@ enum class ELab_3PlayState : short
 };
 
 class ABaseAIController;
+class AMazeExit;
 
 UCLASS(minimalapi)
 class ALab_3GameMode : public AGameMode
@@ -25,6 +26,8 @@ public:
 
     // Initializes game logic when game starts.
     virtual void BeginPlay() override;
+
+    void DiscoverExits();
 
     // Returns current game state.
     ELab_3PlayState GetCurrentState() const;
@@ -53,12 +56,28 @@ public:
     bool Escape(int ExitIndex, int ControllerId);
 
 private:
+    struct Exit
+    {
+        Exit(AMazeExit* actor, FVector location, FString name)
+            : Actor(actor)
+            , Location(location)
+            , Name(name)
+        { }
+
+        AMazeExit* Actor;
+        FVector Location;
+        FString Name;
+    };
+
     FVector WorldOrigin;
     FVector WorldSize;
 
     TArray<ABaseAIController*> Controllers;
 
-    TArray<FVector> ExitLocations;
+    int EscapedControllerCount;
+    TArray<bool> bControllerEscaped;
+
+    TArray<Exit> Exits;
 
     // Stores current game state.
     ELab_3PlayState CurrentState;
