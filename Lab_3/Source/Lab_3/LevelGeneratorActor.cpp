@@ -72,7 +72,9 @@ void ALevelGeneratorActor::CollectWorldParameters()
 void ALevelGeneratorActor::DeleteOldActors()
 {
     for (auto* Actor : SpawnedActors) {
-        Actor->Destroy();
+        if (Actor && Actor->IsValidLowLevel()) {
+            Actor->Destroy();
+        }
     }
     SpawnedActors.Empty();
 }
