@@ -28,7 +28,7 @@ void AMazeHUD::DrawHUD()
     double percentile = 0.9;
 
     TArray<FString> Messages;
-    Messages.Add(FString::Printf(TEXT("Time: %d"), MyGameMode->GetTimePassed()));
+    Messages.Add(FString::Printf(TEXT("Time: %.f"), MyGameMode->GetTimePassed()));
 
     float yShift = 0;
     for (int i = 0 ; i < Messages.Num(); ++i) {
