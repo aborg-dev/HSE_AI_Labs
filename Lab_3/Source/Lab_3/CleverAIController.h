@@ -33,6 +33,9 @@ public:
     UPROPERTY(EditAnywhere, Category = Movement)
     float ScaleDecayRate;
 
+    UPROPERTY(EditAnywhere, Category = Movement)
+    float AcceptableDistanceToTarget;
+
 private:
     NavGraph Graph;
 
@@ -40,9 +43,12 @@ private:
 
     int NextVertex;
     FVector NextVertexLocation;
+    float previousDistanceToNextVertex;
 
     TArray<int> TraversalStack;
     TSet<int> DiscoveredVertices;
+    TSet<int> VisitedVertices;
+    TMap<int, TArray<FVector>> PossibleDiscoveries;
 
     bool bIsMoving;
 
@@ -50,7 +56,7 @@ private:
 
     bool ChooseDirection();
 
-    void GoToVertex(int vertexIndex);
+    void GoToVertex(FVector vertexLocation);
 
     float GetDirectionScale(FVector direction);
 

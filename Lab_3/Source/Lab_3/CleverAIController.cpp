@@ -9,10 +9,11 @@ const int NO_VERTEX = -1;
 ACleverAIController::ACleverAIController()
 {
     ChooseDirectionProbeCount = 4;
-    MinAllowedScale = 50.0f;
+    MinAllowedScale = 100.0f;
     InitialScale = 300.0f;
     ScaleDecayRate = 0.9f;
     bIsMoving = false;
+    AcceptableDistanceToTarget = 20.0f;
     CurrentVertex = NO_VERTEX;
 }
 
@@ -33,26 +34,40 @@ void ACleverAIController::Tick(float DeltaSeconds)
 
     if (bIsMoving) {
         auto currentLocation = GetCharacterLocation();
-        if ((currentLocation - NextVertexLocation).Size() < 1e-3) {
+        auto distance = (currentLocation - NextVertexLocation).Size();
+        UE_LOG(LogTemp, Warning, TEXT("Distance to target: %.3f"), distance);
+        if (previousDistanceToNextVertex - distance < 0.1) {
             bIsMoving = false;
+            NextVertexLocation = currentLocation;
+            NextVertex = Graph.AddVertex(currentLocation);
+            Graph.AddEdge(
+                CurrentVertex,
+                NextVertex,
+                (Graph.GetVertexByIndex(CurrentVertex) - currentLocation).Size());
+            DiscoveredVertices.Add(NextVertex);
+            TraversalStack.Add(NextVertex);
             CurrentVertex = NextVertex;
             NextVertex = NO_VERTEX;
         } else {
+            previousDistanceToNextVertex = distance;
             return;
         }
     }
 
-    DiscoverNeighborhood();
+    if (!VisitedVertices.Contains(CurrentVertex)) {
+        DiscoverNeighborhood();
+    }
     if (!ChooseDirection()) {
         UE_LOG(LogTemp, Warning, TEXT("Traversal completed"));
     }
 }
 
-void ACleverAIController::GoToVertex(int vertexIndex)
+void ACleverAIController::GoToVertex(FVector vertexLocation)
 {
-    NextVertex = vertexIndex;
-    NextVertexLocation = Graph.GetVertexByIndex(vertexIndex);
+    NextVertexLocation = vertexLocation;
     bIsMoving = true;
+    UE_LOG(LogTemp, Warning, TEXT("Going to vertex %s"),
+        *NextVertexLocation.ToString());
     SetNewMoveDestination(NextVertexLocation);
 }
 
@@ -63,18 +78,24 @@ bool ACleverAIController::ChooseDirection()
     }
 
     int currentVertex = TraversalStack.Top();
+    VisitedVertices.Add(currentVertex);
     for (int neighbor : Graph.GetNeighbors(currentVertex)) {
         if (DiscoveredVertices.Contains(neighbor)) {
             continue;
         }
-        DiscoveredVertices.Add(neighbor);
-        TraversalStack.Add(neighbor);
-        GoToVertex(neighbor);
+        GoToVertex(Graph.GetVertexByIndex(neighbor));
         return true;
     }
+    if (PossibleDiscoveries[currentVertex].Num() > 0) {
+        auto target = PossibleDiscoveries[currentVertex].Top();
+        PossibleDiscoveries[currentVertex].Pop();
+        GoToVertex(target);
+        return true;
+    }
+
     TraversalStack.Pop();
     if (TraversalStack.Num() > 0) {
-        GoToVertex(TraversalStack.Top());
+        GoToVertex(Graph.GetVertexByIndex(TraversalStack.Top()));
         return true;
     }
 
@@ -104,8 +125,7 @@ void ACleverAIController::DiscoverNeighborhood()
         auto nextLocation = currentLocation + direction * scale;
         auto closeVertices = Graph.FindCloseVertices(nextLocation, MinAllowedScale / 2);
         if (closeVertices.Num() == 0) {
-            int nextVertex = Graph.AddVertex(nextLocation);
-            Graph.AddEdge(CurrentVertex, nextVertex, scale);
+            PossibleDiscoveries[CurrentVertex].Add(nextLocation);
         }
     }
 }
