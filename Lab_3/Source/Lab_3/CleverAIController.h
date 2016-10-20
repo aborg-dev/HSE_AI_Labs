@@ -51,6 +51,7 @@ private:
     TMap<int, TArray<FVector>> PossibleDiscoveries;
 
     bool bIsMoving;
+    bool bIsMovingBack;
 
     void DiscoverNeighborhood();
 

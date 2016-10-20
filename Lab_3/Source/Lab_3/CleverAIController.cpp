@@ -35,19 +35,25 @@ void ACleverAIController::Tick(float DeltaSeconds)
     if (bIsMoving) {
         auto currentLocation = GetCharacterLocation();
         auto distance = (currentLocation - NextVertexLocation).Size();
+        UE_LOG(LogTemp, Warning, TEXT("Current location: %s, Next location: %s"),
+            *currentLocation.ToString(),
+            *NextVertexLocation.ToString());
         UE_LOG(LogTemp, Warning, TEXT("Distance to target: %.3f"), distance);
         if (previousDistanceToNextVertex - distance < 0.1) {
             bIsMoving = false;
-            NextVertexLocation = currentLocation;
-            NextVertex = Graph.AddVertex(currentLocation);
-            Graph.AddEdge(
-                CurrentVertex,
-                NextVertex,
-                (Graph.GetVertexByIndex(CurrentVertex) - currentLocation).Size());
-            DiscoveredVertices.Add(NextVertex);
-            TraversalStack.Add(NextVertex);
+            if (!bIsMovingBack) {
+                NextVertexLocation = currentLocation;
+                NextVertex = Graph.AddVertex(currentLocation);
+                Graph.AddEdge(
+                    CurrentVertex,
+                    NextVertex,
+                    (Graph.GetVertexByIndex(CurrentVertex) - currentLocation).Size());
+                DiscoveredVertices.Add(NextVertex);
+                TraversalStack.Add(NextVertex);
+            }
             CurrentVertex = NextVertex;
             NextVertex = NO_VERTEX;
+            previousDistanceToNextVertex = 1e9;
         } else {
             previousDistanceToNextVertex = distance;
             return;
@@ -77,7 +83,9 @@ bool ACleverAIController::ChooseDirection()
         return false;
     }
 
+    bIsMovingBack = false;
     int currentVertex = TraversalStack.Top();
+    UE_LOG(LogTemp, Warning, TEXT("ChooseDirection: currentVertex: %d"), currentVertex);
     VisitedVertices.Add(currentVertex);
     for (int neighbor : Graph.GetNeighbors(currentVertex)) {
         if (DiscoveredVertices.Contains(neighbor)) {
@@ -86,15 +94,23 @@ bool ACleverAIController::ChooseDirection()
         GoToVertex(Graph.GetVertexByIndex(neighbor));
         return true;
     }
-    if (PossibleDiscoveries[currentVertex].Num() > 0) {
-        auto target = PossibleDiscoveries[currentVertex].Top();
-        PossibleDiscoveries[currentVertex].Pop();
-        GoToVertex(target);
-        return true;
+
+    auto* discoveries = PossibleDiscoveries.Find(currentVertex);
+    if (discoveries) {
+        UE_LOG(LogTemp, Warning, TEXT("ChooseDirection: Possible discoveries num: %d"), discoveries->Num());
+        if (discoveries->Num() > 0) {
+            auto target = discoveries->Top();
+            discoveries->Pop();
+            GoToVertex(target);
+            return true;
+        }
     }
 
     TraversalStack.Pop();
     if (TraversalStack.Num() > 0) {
+        UE_LOG(LogTemp, Warning, TEXT("Return through traversal stack to vertex %d"), TraversalStack.Top());
+        bIsMovingBack = true;
+        NextVertex = TraversalStack.Top();
         GoToVertex(Graph.GetVertexByIndex(TraversalStack.Top()));
         return true;
     }
@@ -121,11 +137,17 @@ void ACleverAIController::DiscoverNeighborhood()
         if (scale < 2 * MinAllowedScale) {
             continue;
         }
+        //UE_LOG(LogTemp, Warning, TEXT("Direction: %s, scale: %.3f"),
+            //*direction.ToString(),
+            //scale);
         scale = MinAllowedScale;
         auto nextLocation = currentLocation + direction * scale;
         auto closeVertices = Graph.FindCloseVertices(nextLocation, MinAllowedScale / 2);
         if (closeVertices.Num() == 0) {
-            PossibleDiscoveries[CurrentVertex].Add(nextLocation);
+            UE_LOG(LogTemp, Warning, TEXT("Adding discovery %s -> %s"),
+                *currentLocation.ToString(),
+                *nextLocation.ToString());
+            PossibleDiscoveries.FindOrAdd(CurrentVertex).Add(nextLocation);
         }
     }
 }
