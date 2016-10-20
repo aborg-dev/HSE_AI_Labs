@@ -22,13 +22,36 @@ public:
     void Tick(float DeltaSeconds) override;
 
     UPROPERTY(EditAnywhere, Category = Movement)
-    float ChooseDirectionProbeCount;
+    int ChooseDirectionProbeCount;
+
+    UPROPERTY(EditAnywhere, Category = Movement)
+    float MinAllowedScale;
+
+    UPROPERTY(EditAnywhere, Category = Movement)
+    float InitialScale;
+
+    UPROPERTY(EditAnywhere, Category = Movement)
+    float ScaleDecayRate;
 
 private:
     NavGraph Graph;
 
+    int CurrentVertex;
+
+    int NextVertex;
+    FVector NextVertexLocation;
+
+    TArray<int> TraversalStack;
+    TSet<int> DiscoveredVertices;
+
     bool bIsMoving;
 
     void DiscoverNeighborhood();
+
+    bool ChooseDirection();
+
+    void GoToVertex(int vertexIndex);
+
+    float GetDirectionScale(FVector direction);
 
 };

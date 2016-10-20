@@ -22,4 +22,7 @@ public:
         FHitResult& HitOut,
         ECollisionChannel CollisionChannel = ECC_WorldStatic,
         bool ReturnPhysMat = false);
+
+    static FVector GetAngleDirection(float angle);
+
 };

@@ -38,3 +38,11 @@ bool UStaticLibrary::Trace(
     // Hit any Actor?
     return HitOut.bBlockingHit;
 }
+
+FVector UStaticLibrary::GetAngleDirection(float angle)
+{
+    FVector direction;
+    FMath::SinCos(&direction.X, &direction.Y, angle);
+    direction.Z = 0;
+    return direction;
+}

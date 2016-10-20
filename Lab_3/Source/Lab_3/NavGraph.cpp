@@ -66,8 +66,8 @@ void NavGraph::AddEdge(int first, int second, float distance)
     Edges[second].Emplace(first, distance);
 }
 
-TArray<std::pair<int, FVertex>> NavGraph::FindCloseVertices(const FVector& vertex, float distance) {
-    TArray<std::pair<int, FVertex>> result;
+TArray<std::pair<int, FVector>> NavGraph::FindCloseVertices(const FVector& vertex, float distance) {
+    TArray<std::pair<int, FVector>> result;
     for (int i = 0; i < Vertices.Num(); ++i) {
         float curDistance = (Vertices[i] - vertex).Size();
         if (curDistance < distance) {
