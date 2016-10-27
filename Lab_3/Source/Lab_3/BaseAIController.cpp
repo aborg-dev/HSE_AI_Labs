@@ -67,7 +67,7 @@ void ABaseAIController::SetNewMoveDestination(FVector DestLocation)
 
         // We need to issue move command only if far enough in order for walk animation to play correctly
         if (NavSys) {
-            NavSys->SimpleMoveToLocation(this, DestLocation);
+            MoveToLocation(DestLocation, 0, 0, 1);
         }
     }
 }
