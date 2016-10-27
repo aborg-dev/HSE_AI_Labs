@@ -43,7 +43,7 @@ private:
 
     int NextVertex;
     FVector NextVertexLocation;
-    float previousDistanceToNextVertex;
+    float PreviousDistanceToNextVertex;
 
     TArray<int> TraversalStack;
     TSet<int> DiscoveredVertices;

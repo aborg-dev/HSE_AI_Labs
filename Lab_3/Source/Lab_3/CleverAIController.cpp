@@ -15,6 +15,7 @@ ACleverAIController::ACleverAIController()
     bIsMoving = false;
     AcceptableDistanceToTarget = 20.0f;
     CurrentVertex = NO_VERTEX;
+    PreviousDistanceToNextVertex = 1e9;
 }
 
 void ACleverAIController::BeginPlay()
@@ -35,11 +36,12 @@ void ACleverAIController::Tick(float DeltaSeconds)
     if (bIsMoving) {
         auto currentLocation = GetCharacterLocation();
         auto distance = (currentLocation - NextVertexLocation).Size();
-        UE_LOG(LogTemp, Warning, TEXT("Current location: %s, Next location: %s"),
+        UE_LOG(LogTemp, Warning, TEXT("Current location: %s, Next location: %s, distance: %.3f"),
             *currentLocation.ToString(),
-            *NextVertexLocation.ToString());
-        UE_LOG(LogTemp, Warning, TEXT("Distance to target: %.3f"), distance);
-        if (previousDistanceToNextVertex - distance < 0.1) {
+            *NextVertexLocation.ToString(),
+            distance);
+
+        if (PreviousDistanceToNextVertex - distance < 1) {
             bIsMoving = false;
             if (!bIsMovingBack) {
                 NextVertexLocation = currentLocation;
@@ -53,9 +55,9 @@ void ACleverAIController::Tick(float DeltaSeconds)
             }
             CurrentVertex = NextVertex;
             NextVertex = NO_VERTEX;
-            previousDistanceToNextVertex = 1e9;
+            PreviousDistanceToNextVertex = 1e9;
         } else {
-            previousDistanceToNextVertex = distance;
+            PreviousDistanceToNextVertex = distance;
             return;
         }
     }
@@ -131,15 +133,17 @@ float ACleverAIController::GetDirectionScale(FVector direction)
 void ACleverAIController::DiscoverNeighborhood()
 {
     auto currentLocation = GetCharacterLocation();
-    for (float angle = 0.0f; angle <= 2 * PI; angle += 2 * PI / ChooseDirectionProbeCount) {
+    for (int i = 0; i < ChooseDirectionProbeCount; ++i) {
+        float angle = i * (2 * PI / ChooseDirectionProbeCount);
         auto direction = UStaticLibrary::GetAngleDirection(angle);
         auto scale = GetDirectionScale(direction);
-        if (scale < 2 * MinAllowedScale) {
+        if (scale < MinAllowedScale) {
             continue;
         }
-        //UE_LOG(LogTemp, Warning, TEXT("Direction: %s, scale: %.3f"),
-            //*direction.ToString(),
-            //scale);
+        UE_LOG(LogTemp, Warning, TEXT("Direction: %s, scale: %.3f, angle: %.3f"),
+            *direction.ToString(),
+            scale,
+            angle);
         scale = MinAllowedScale;
         auto nextLocation = currentLocation + direction * scale;
         auto closeVertices = Graph.FindCloseVertices(nextLocation, MinAllowedScale / 2);
