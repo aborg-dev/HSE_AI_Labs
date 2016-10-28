@@ -61,4 +61,6 @@ private:
 
     float GetDirectionScale(FVector direction);
 
+    bool TryEscape();
+
 };

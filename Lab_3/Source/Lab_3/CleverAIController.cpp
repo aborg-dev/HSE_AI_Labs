@@ -3,6 +3,7 @@
 #include "Lab_3.h"
 #include "CleverAIController.h"
 #include "StaticLibrary.h"
+#include "MazeExit.h"
 
 const int NO_VERTEX = -1;
 
@@ -31,6 +32,10 @@ void ACleverAIController::Tick(float DeltaSeconds)
         CurrentVertex = Graph.AddVertex(GetCharacterLocation());
         TraversalStack.Add(CurrentVertex);
         DiscoveredVertices.Add(CurrentVertex);
+    }
+
+    if (TryEscape()) {
+        return;
     }
 
     if (bIsMoving) {
@@ -68,6 +73,23 @@ void ACleverAIController::Tick(float DeltaSeconds)
     if (!ChooseDirection()) {
         UE_LOG(LogTemp, Warning, TEXT("Traversal completed"));
     }
+}
+
+bool ACleverAIController::TryEscape()
+{
+    auto exitLocations = GetExitLocations();
+    auto currentLocation = GetCharacterLocation();
+    for (int exitIndex = 0; exitIndex < exitLocations.Num(); ++exitIndex) {
+        const auto& location = exitLocations[exitIndex];
+        auto distance = (currentLocation - location).Size();
+        if (distance < AMazeExit::EscapeRadius) {
+            bool bSuccess = Escape(exitIndex);
+            if (bSuccess) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void ACleverAIController::GoToVertex(FVector vertexLocation)
