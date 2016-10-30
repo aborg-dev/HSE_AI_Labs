@@ -3,6 +3,9 @@
 #include "Lab_3.h"
 #include "NavGraph.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
+
 NavGraph::NavGraph()
 {
 }
@@ -11,8 +14,27 @@ NavGraph::~NavGraph()
 {
 }
 
+void NavGraph::SetWorld(UWorld* world)
+{
+    World = world;
+}
+
+void NavGraph::SetColor(FColor color)
+{
+    Color = color;
+}
+
 int NavGraph::AddVertex(const FVector& vertex)
 {
+    if (World) {
+        UKismetSystemLibrary::DrawDebugPoint(
+            World,
+            vertex,
+            3,
+            Color,
+            300.f);
+    }
+
     Vertices.Add(vertex);
     Edges.Emplace();
     return Vertices.Num() - 1;
@@ -64,6 +86,15 @@ void NavGraph::AddEdge(int first, int second, float distance)
     }
     Edges[first].Emplace(second, distance);
     Edges[second].Emplace(first, distance);
+
+    if (World) {
+        UKismetSystemLibrary::DrawDebugLine(
+            World,
+            GetVertexByIndex(first),
+            GetVertexByIndex(second),
+            Color,
+            300.f);
+    }
 }
 
 TArray<std::pair<int, FVector>> NavGraph::FindCloseVertices(const FVector& vertex, float distance) {

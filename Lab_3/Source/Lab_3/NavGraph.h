@@ -15,6 +15,10 @@ public:
     NavGraph();
     ~NavGraph();
 
+    void SetWorld(UWorld* world);
+
+    void SetColor(FColor color);
+
     int AddVertex(const FVector& vertex);
 
     int FindVertex(const FVector& vertex);
@@ -46,5 +50,8 @@ private:
     TArray<TArray<Edge>> Edges;
 
     bool ValidateVertexIndex(int index);
+
+    UWorld* World = nullptr;
+    FColor Color = FColor(255, 0, 0);
 
 };

@@ -17,11 +17,18 @@ ACleverAIController::ACleverAIController()
     AcceptableDistanceToTarget = 20.0f;
     CurrentVertex = NO_VERTEX;
     PreviousDistanceToNextVertex = 1e9;
+    Graph.SetWorld(GetWorld());
 }
 
 void ACleverAIController::BeginPlay()
 {
     Super::BeginPlay();
+
+    switch (ControllerId) {
+        case 0 : Graph.SetColor(FColor(255, 0, 0)); break;
+        case 1 : Graph.SetColor(FColor(0, 255, 0)); break;
+        case 2 : Graph.SetColor(FColor(0, 0, 255)); break;
+    }
 }
 
 void ACleverAIController::Tick(float DeltaSeconds)
