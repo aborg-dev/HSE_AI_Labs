@@ -3,6 +3,7 @@
 #pragma once
 
 #include "AIController.h"
+#include "DetourCrowdAIController.h"
 #include "BaseAIController.generated.h"
 
 class ALab_3Character;
@@ -12,7 +13,7 @@ class ALab_3GameMode;
  * 
  */
 UCLASS()
-class LAB_3_API ABaseAIController : public AAIController
+class LAB_3_API ABaseAIController : public ADetourCrowdAIController
 {
 	GENERATED_BODY()
 	
