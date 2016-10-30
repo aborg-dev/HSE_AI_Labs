@@ -10,13 +10,20 @@ const int NO_VERTEX = -1;
 ACleverAIController::ACleverAIController()
 {
     ChooseDirectionProbeCount = 4;
-    MinAllowedScale = 100.0f;
+    MinAllowedScale = 150.0f;
     InitialScale = 300.0f;
     ScaleDecayRate = 0.9f;
     bIsMoving = false;
-    AcceptableDistanceToTarget = 20.0f;
+    AcceptableDistanceToTarget = 10.0f;
     CurrentVertex = NO_VERTEX;
-    PreviousDistanceToNextVertex = 1e9;
+    MinAllowedSpeed = 50.f;
+    OvershootDistance = 30.0f;
+
+    PreviousDistanceToNextVertex = MinAllowedScale;
+
+    MinTryMoveTime = 0.5f;
+    TryMoveTime = 0.0f;
+
     Graph.SetWorld(GetWorld());
 }
 
@@ -48,12 +55,15 @@ void ACleverAIController::Tick(float DeltaSeconds)
     if (bIsMoving) {
         auto currentLocation = GetCharacterLocation();
         auto distance = (currentLocation - NextVertexLocation).Size();
-        UE_LOG(LogTemp, Warning, TEXT("Current location: %s, Next location: %s, distance: %.3f"),
+        float speed = fabs(PreviousDistanceToNextVertex - distance) / DeltaSeconds;
+        UE_LOG(LogTemp, Warning, TEXT("Current location: %s, Next location: %s, distance: %.3f, speed: %.3f"),
             *currentLocation.ToString(),
             *NextVertexLocation.ToString(),
-            distance);
+            distance,
+            speed);
 
-        if (PreviousDistanceToNextVertex - distance < 1) {
+        TryMoveTime += DeltaSeconds;
+        if (distance < AcceptableDistanceToTarget || (speed < MinAllowedSpeed && TryMoveTime > MinTryMoveTime)) {
             bIsMoving = false;
             if (!bIsMovingBack) {
                 NextVertexLocation = currentLocation;
@@ -67,7 +77,8 @@ void ACleverAIController::Tick(float DeltaSeconds)
             }
             CurrentVertex = NextVertex;
             NextVertex = NO_VERTEX;
-            PreviousDistanceToNextVertex = 1e9;
+            PreviousDistanceToNextVertex = MinAllowedScale;
+            TryMoveTime = 0.0f;
         } else {
             PreviousDistanceToNextVertex = distance;
             return;
@@ -105,7 +116,17 @@ void ACleverAIController::GoToVertex(FVector vertexLocation)
     bIsMoving = true;
     UE_LOG(LogTemp, Warning, TEXT("Going to vertex %s"),
         *NextVertexLocation.ToString());
-    SetNewMoveDestination(NextVertexLocation);
+
+    UKismetSystemLibrary::DrawDebugLine(
+        GetWorld(),
+        GetCharacterLocation(),
+        vertexLocation,
+        FColor(0, 255, 0),
+        10.f);
+
+    auto delta = NextVertexLocation - GetCharacterLocation();
+    delta /= delta.Size();
+    SetNewMoveDestination(NextVertexLocation + delta * OvershootDistance);
 }
 
 bool ACleverAIController::ChooseDirection()

@@ -36,6 +36,15 @@ public:
     UPROPERTY(EditAnywhere, Category = Movement)
     float AcceptableDistanceToTarget;
 
+    UPROPERTY(EditAnywhere, Category = Movement)
+    float OvershootDistance;
+
+    UPROPERTY(EditAnywhere, Category = Movement)
+    float MinTryMoveTime;
+
+    UPROPERTY(EditAnywhere, Category = Movement)
+    float MinAllowedSpeed;
+
 private:
     NavGraph Graph;
 
@@ -44,6 +53,7 @@ private:
     int NextVertex;
     FVector NextVertexLocation;
     float PreviousDistanceToNextVertex;
+    float TryMoveTime;
 
     TArray<int> TraversalStack;
     TSet<int> DiscoveredVertices;
