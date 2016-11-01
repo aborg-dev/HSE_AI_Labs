@@ -72,6 +72,8 @@ private:
     void ValidateVertexIndex(int index) const;
 
     UWorld* World = nullptr;
-    FColor Color = FColor(255, 0, 0);
+    FColor VertexColor = FColor(255, 0, 0);
+    FColor EdgeColor = FColor(255, 0, 0);
+    FColor DiscoveryColor = FColor(0, 0, 255);
 
 };

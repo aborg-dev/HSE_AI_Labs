@@ -21,7 +21,7 @@ void NavGraph::SetWorld(UWorld* world)
 
 void NavGraph::SetColor(FColor color)
 {
-    Color = color;
+    VertexColor = EdgeColor = color;
 }
 
 int NavGraph::AddVertex(const FVector& vertex)
@@ -31,7 +31,7 @@ int NavGraph::AddVertex(const FVector& vertex)
             World,
             vertex,
             3,
-            Color,
+            VertexColor,
             300.f);
     }
 
@@ -53,6 +53,22 @@ int NavGraph::FindVertex(const FVector& vertex)
 void NavGraph::AddPossibleDiscovery(int index, const FVector& discovery)
 {
     ValidateVertexIndex(index);
+
+    if (World) {
+        UKismetSystemLibrary::DrawDebugPoint(
+            World,
+            discovery,
+            3,
+            DiscoveryColor,
+            300.f);
+
+        UKismetSystemLibrary::DrawDebugLine(
+            World,
+            GetVertexByIndex(index),
+            discovery,
+            DiscoveryColor,
+            300.f);
+    }
 
     Vertices[index].PossibleDiscoveries.Add(discovery);
 }
@@ -116,7 +132,7 @@ void NavGraph::AddEdge(int first, int second, float distance)
             World,
             GetVertexByIndex(first),
             GetVertexByIndex(second),
-            Color,
+            EdgeColor,
             300.f);
     }
 }
