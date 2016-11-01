@@ -24,17 +24,19 @@ ACleverAIController::ACleverAIController()
     MinTryMoveTime = 0.5f;
     TryMoveTime = 0.0f;
 
-    Graph.SetWorld(GetWorld());
+    Graph = nullptr;
 }
 
 void ACleverAIController::BeginPlay()
 {
     Super::BeginPlay();
 
-    switch (ControllerId) {
-        case 0 : Graph.SetColor(FColor(255, 0, 0)); break;
-        case 1 : Graph.SetColor(FColor(0, 255, 0)); break;
-        case 2 : Graph.SetColor(FColor(0, 0, 255)); break;
+    auto* controller = Cast<ACleverAIController>(GetControllerById(0));
+    if (ControllerId == 0 || !controller) {
+        Graph = MakeShareable(new NavGraph());
+        Graph->SetWorld(GetWorld());
+    } else {
+        Graph = controller->GetNavigationGraph();
     }
 }
 
@@ -43,7 +45,7 @@ void ACleverAIController::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
 
     if (CurrentVertex == NO_VERTEX) {
-        CurrentVertex = Graph.AddVertex(GetCharacterLocation());
+        CurrentVertex = Graph->AddVertex(GetCharacterLocation());
         TraversalStack.Add(CurrentVertex);
         DiscoveredVertices.Add(CurrentVertex);
     }
@@ -67,11 +69,11 @@ void ACleverAIController::Tick(float DeltaSeconds)
             bIsMoving = false;
             if (!bIsMovingBack) {
                 NextVertexLocation = currentLocation;
-                NextVertex = Graph.AddVertex(currentLocation);
-                Graph.AddEdge(
+                NextVertex = Graph->AddVertex(currentLocation);
+                Graph->AddEdge(
                     CurrentVertex,
                     NextVertex,
-                    (Graph.GetVertexByIndex(CurrentVertex) - currentLocation).Size());
+                    (Graph->GetVertexByIndex(CurrentVertex) - currentLocation).Size());
                 DiscoveredVertices.Add(NextVertex);
                 TraversalStack.Add(NextVertex);
             }
@@ -91,6 +93,11 @@ void ACleverAIController::Tick(float DeltaSeconds)
     if (!ChooseDirection()) {
         UE_LOG(LogTemp, Warning, TEXT("Traversal completed"));
     }
+}
+
+TSharedPtr<NavGraph> ACleverAIController::GetNavigationGraph()
+{
+    return Graph;
 }
 
 bool ACleverAIController::TryEscape()
@@ -139,16 +146,16 @@ bool ACleverAIController::ChooseDirection()
     int currentVertex = TraversalStack.Top();
     UE_LOG(LogTemp, Warning, TEXT("ChooseDirection: currentVertex: %d"), currentVertex);
     VisitedVertices.Add(currentVertex);
-    for (int neighbor : Graph.GetNeighbors(currentVertex)) {
+    for (int neighbor : Graph->GetNeighbors(currentVertex)) {
         if (DiscoveredVertices.Contains(neighbor)) {
             continue;
         }
-        GoToVertex(Graph.GetVertexByIndex(neighbor));
+        GoToVertex(Graph->GetVertexByIndex(neighbor));
         return true;
     }
 
-    if (Graph.HasPossibleDiscoveries(currentVertex)) {
-        auto discovery = Graph.GetAndPopOneDiscovery(currentVertex);
+    if (Graph->HasPossibleDiscoveries(currentVertex)) {
+        auto discovery = Graph->GetAndPopOneDiscovery(currentVertex);
         GoToVertex(discovery);
         return true;
     }
@@ -158,7 +165,7 @@ bool ACleverAIController::ChooseDirection()
         UE_LOG(LogTemp, Warning, TEXT("Return through traversal stack to vertex %d"), TraversalStack.Top());
         bIsMovingBack = true;
         NextVertex = TraversalStack.Top();
-        GoToVertex(Graph.GetVertexByIndex(TraversalStack.Top()));
+        GoToVertex(Graph->GetVertexByIndex(TraversalStack.Top()));
         return true;
     }
 
@@ -191,12 +198,12 @@ void ACleverAIController::DiscoverNeighborhood()
             angle);
         scale = MinAllowedScale;
         auto nextLocation = currentLocation + direction * scale;
-        auto closeVertices = Graph.FindCloseVertices(nextLocation, MinAllowedScale / 2);
+        auto closeVertices = Graph->FindCloseVertices(nextLocation, MinAllowedScale / 2);
         if (closeVertices.Num() == 0) {
             UE_LOG(LogTemp, Warning, TEXT("Adding discovery %s -> %s"),
                 *currentLocation.ToString(),
                 *nextLocation.ToString());
-            Graph.AddPossibleDiscovery(CurrentVertex, nextLocation);
+            Graph->AddPossibleDiscovery(CurrentVertex, nextLocation);
         }
     }
 }

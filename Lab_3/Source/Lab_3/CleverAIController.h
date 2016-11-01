@@ -21,6 +21,8 @@ public:
 
     void Tick(float DeltaSeconds) override;
 
+    TSharedPtr<NavGraph> GetNavigationGraph();
+
     UPROPERTY(EditAnywhere, Category = Movement)
     int ChooseDirectionProbeCount;
 
@@ -46,7 +48,7 @@ public:
     float MinAllowedSpeed;
 
 private:
-    NavGraph Graph;
+    TSharedPtr<NavGraph> Graph;
 
     int CurrentVertex;
 
