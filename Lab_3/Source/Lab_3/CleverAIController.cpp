@@ -47,7 +47,6 @@ void ACleverAIController::Tick(float DeltaSeconds)
     if (CurrentVertex == NO_VERTEX) {
         CurrentVertex = Graph->AddVertex(GetCharacterLocation());
         TraversalStack.Add(CurrentVertex);
-        DiscoveredVertices.Add(CurrentVertex);
     }
 
     if (TryEscape()) {
@@ -74,7 +73,6 @@ void ACleverAIController::Tick(float DeltaSeconds)
                     CurrentVertex,
                     NextVertex,
                     (Graph->GetVertexByIndex(CurrentVertex) - currentLocation).Size());
-                DiscoveredVertices.Add(NextVertex);
                 TraversalStack.Add(NextVertex);
             }
             CurrentVertex = NextVertex;
@@ -87,12 +85,17 @@ void ACleverAIController::Tick(float DeltaSeconds)
         }
     }
 
-    if (!VisitedVertices.Contains(CurrentVertex)) {
+    if (!Graph->IsVisited(CurrentVertex)) {
         DiscoverNeighborhood();
     }
     if (!ChooseDirection()) {
         UE_LOG(LogTemp, Warning, TEXT("Traversal completed"));
     }
+}
+
+int ACleverAIController::GetCurrentVertex()
+{
+    return CurrentVertex;
 }
 
 TSharedPtr<NavGraph> ACleverAIController::GetNavigationGraph()
@@ -145,9 +148,9 @@ bool ACleverAIController::ChooseDirection()
     bIsMovingBack = false;
     int currentVertex = TraversalStack.Top();
     UE_LOG(LogTemp, Warning, TEXT("ChooseDirection: currentVertex: %d"), currentVertex);
-    VisitedVertices.Add(currentVertex);
+    Graph->Visit(currentVertex);
     for (int neighbor : Graph->GetNeighbors(currentVertex)) {
-        if (DiscoveredVertices.Contains(neighbor)) {
+        if (Graph->IsVisited(neighbor)) {
             continue;
         }
         GoToVertex(Graph->GetVertexByIndex(neighbor));
@@ -204,6 +207,22 @@ void ACleverAIController::DiscoverNeighborhood()
                 *currentLocation.ToString(),
                 *nextLocation.ToString());
             Graph->AddPossibleDiscovery(CurrentVertex, nextLocation);
+        }
+    }
+
+    for (int id = 0; id < GetControllerCount(); ++id) {
+        if (id == ControllerId) {
+            continue;
+        }
+        auto* controller = Cast<ACleverAIController>(GetControllerById(id));
+        if (controller) {
+            auto location = controller->GetCharacterLocation();
+            auto vertex = controller->GetCurrentVertex();
+            auto distance = (currentLocation - location).Size();
+            if (vertex == NO_VERTEX || distance > MinAllowedScale) {
+                continue;
+            }
+            Graph->AddEdge(CurrentVertex, vertex, distance);
         }
     }
 }

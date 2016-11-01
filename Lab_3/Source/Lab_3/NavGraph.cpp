@@ -50,6 +50,20 @@ int NavGraph::FindVertex(const FVector& vertex)
     return NOT_FOUND;
 }
 
+bool NavGraph::IsVisited(int index) const
+{
+    ValidateVertexIndex(index);
+
+    return Vertices[index].bVisited;
+}
+
+void NavGraph::Visit(int index)
+{
+    ValidateVertexIndex(index);
+
+    Vertices[index].bVisited = true;
+}
+
 void NavGraph::AddPossibleDiscovery(int index, const FVector& discovery)
 {
     ValidateVertexIndex(index);

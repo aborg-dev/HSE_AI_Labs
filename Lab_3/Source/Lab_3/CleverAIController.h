@@ -21,6 +21,8 @@ public:
 
     void Tick(float DeltaSeconds) override;
 
+    int GetCurrentVertex();
+
     TSharedPtr<NavGraph> GetNavigationGraph();
 
     UPROPERTY(EditAnywhere, Category = Movement)
@@ -58,8 +60,6 @@ private:
     float TryMoveTime;
 
     TArray<int> TraversalStack;
-    TSet<int> DiscoveredVertices;
-    TSet<int> VisitedVertices;
 
     bool bIsMoving;
     bool bIsMovingBack;

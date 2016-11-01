@@ -23,6 +23,10 @@ public:
 
     int FindVertex(const FVector& vertex);
 
+    bool IsVisited(int index) const;
+
+    void Visit(int index);
+
     void AddPossibleDiscovery(int index, const FVector& discovery);
 
     bool HasPossibleDiscoveries(int index) const;
@@ -50,6 +54,7 @@ private:
 
         FVector Location;
         TArray<FVector> PossibleDiscoveries;
+        bool bVisited = false;
     };
 
     TArray<Vertex> Vertices;
