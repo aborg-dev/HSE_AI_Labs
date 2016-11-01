@@ -69,7 +69,7 @@ private:
 
     TArray<TArray<Edge>> Edges;
 
-    bool ValidateVertexIndex(int index) const;
+    void ValidateVertexIndex(int index) const;
 
     UWorld* World = nullptr;
     FColor Color = FColor(255, 0, 0);

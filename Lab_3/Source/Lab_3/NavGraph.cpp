@@ -52,25 +52,21 @@ int NavGraph::FindVertex(const FVector& vertex)
 
 void NavGraph::AddPossibleDiscovery(int index, const FVector& discovery)
 {
-    if (!ValidateVertexIndex(index)) {
-        return;
-    }
+    ValidateVertexIndex(index);
+
     Vertices[index].PossibleDiscoveries.Add(discovery);
 }
 
 bool NavGraph::HasPossibleDiscoveries(int index) const
 {
-    if (!ValidateVertexIndex(index)) {
-        return false;
-    }
+    ValidateVertexIndex(index);
+
     return Vertices[index].PossibleDiscoveries.Num() > 0;
 }
 
 FVector NavGraph::GetAndPopOneDiscovery(int index)
 {
-    if (!ValidateVertexIndex(index)) {
-        return FVector(0, 0, 0);
-    }
+    ValidateVertexIndex(index);
 
     auto& discoveries = Vertices[index].PossibleDiscoveries;
     if (discoveries.Num() == 0) {
@@ -85,38 +81,33 @@ FVector NavGraph::GetAndPopOneDiscovery(int index)
 
 TArray<int> NavGraph::GetNeighbors(int index)
 {
+    ValidateVertexIndex(index);
+
     TArray<int> result;
-    if (!ValidateVertexIndex(index)) {
-        return result;
-    }
     for (const auto& edge : Edges[index]) {
         result.Emplace(edge.To);
     }
     return result;
 }
 
-bool NavGraph::ValidateVertexIndex(int index) const
+void NavGraph::ValidateVertexIndex(int index) const
 {
-    if (index >= Vertices.Num()) {
-        UE_LOG(LogTemp, Warning, TEXT("Trying to add edge to non-existent vertex %d"), index);
-        return false;
-    }
-    return true;
+    ensureMsgf(index < Vertices.Num(),
+        TEXT("Trying to extract non-existent vertex %d"), index);
 }
 
 FVector NavGraph::GetVertexByIndex(int index)
 {
-    if (!ValidateVertexIndex(index)) {
-        return FVector(0, 0, 0);
-    }
+    ValidateVertexIndex(index);
+
     return Vertices[index].Location;
 }
 
 void NavGraph::AddEdge(int first, int second, float distance)
 {
-    if (!ValidateVertexIndex(first) || !ValidateVertexIndex(second)) {
-        return;
-    }
+    ValidateVertexIndex(first);
+    ValidateVertexIndex(second);
+
     Edges[first].Emplace(second, distance);
     Edges[second].Emplace(first, distance);
 
