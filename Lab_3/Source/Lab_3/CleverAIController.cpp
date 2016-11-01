@@ -147,15 +147,10 @@ bool ACleverAIController::ChooseDirection()
         return true;
     }
 
-    auto* discoveries = PossibleDiscoveries.Find(currentVertex);
-    if (discoveries) {
-        UE_LOG(LogTemp, Warning, TEXT("ChooseDirection: Possible discoveries num: %d"), discoveries->Num());
-        if (discoveries->Num() > 0) {
-            auto target = discoveries->Top();
-            discoveries->Pop();
-            GoToVertex(target);
-            return true;
-        }
+    if (Graph.HasPossibleDiscoveries(currentVertex)) {
+        auto discovery = Graph.GetAndPopOneDiscovery(currentVertex);
+        GoToVertex(discovery);
+        return true;
     }
 
     TraversalStack.Pop();
@@ -201,7 +196,7 @@ void ACleverAIController::DiscoverNeighborhood()
             UE_LOG(LogTemp, Warning, TEXT("Adding discovery %s -> %s"),
                 *currentLocation.ToString(),
                 *nextLocation.ToString());
-            PossibleDiscoveries.FindOrAdd(CurrentVertex).Add(nextLocation);
+            Graph.AddPossibleDiscovery(CurrentVertex, nextLocation);
         }
     }
 }

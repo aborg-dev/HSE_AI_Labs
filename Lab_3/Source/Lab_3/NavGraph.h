@@ -23,6 +23,12 @@ public:
 
     int FindVertex(const FVector& vertex);
 
+    void AddPossibleDiscovery(int index, const FVector& discovery);
+
+    bool HasPossibleDiscoveries(int index) const;
+
+    FVector GetAndPopOneDiscovery(int index);
+
     TArray<int> GetNeighbors(int index);
 
     FVector GetVertexByIndex(int index);
@@ -32,7 +38,21 @@ public:
     void AddEdge(int first, int second, float distance);
 
 private:
-    TArray<FVector> Vertices;
+    struct Vertex
+    {
+        Vertex(FVector location)
+            : Location(location)
+        { }
+
+        Vertex()
+            : Location(FVector(0, 0, 0))
+        { }
+
+        FVector Location;
+        TArray<FVector> PossibleDiscoveries;
+    };
+
+    TArray<Vertex> Vertices;
 
     struct Edge
     {
@@ -49,7 +69,7 @@ private:
 
     TArray<TArray<Edge>> Edges;
 
-    bool ValidateVertexIndex(int index);
+    bool ValidateVertexIndex(int index) const;
 
     UWorld* World = nullptr;
     FColor Color = FColor(255, 0, 0);

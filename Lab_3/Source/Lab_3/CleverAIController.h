@@ -58,7 +58,6 @@ private:
     TArray<int> TraversalStack;
     TSet<int> DiscoveredVertices;
     TSet<int> VisitedVertices;
-    TMap<int, TArray<FVector>> PossibleDiscoveries;
 
     bool bIsMoving;
     bool bIsMovingBack;

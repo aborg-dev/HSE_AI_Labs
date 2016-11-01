@@ -35,7 +35,7 @@ int NavGraph::AddVertex(const FVector& vertex)
             300.f);
     }
 
-    Vertices.Add(vertex);
+    Vertices.Emplace(vertex);
     Edges.Emplace();
     return Vertices.Num() - 1;
 }
@@ -43,11 +43,44 @@ int NavGraph::AddVertex(const FVector& vertex)
 int NavGraph::FindVertex(const FVector& vertex)
 {
     for (int i = 0; i < Vertices.Num(); ++i) {
-        if (Vertices[i] == vertex) {
+        if (Vertices[i].Location == vertex) {
             return i;
         }
     }
     return NOT_FOUND;
+}
+
+void NavGraph::AddPossibleDiscovery(int index, const FVector& discovery)
+{
+    if (!ValidateVertexIndex(index)) {
+        return;
+    }
+    Vertices[index].PossibleDiscoveries.Add(discovery);
+}
+
+bool NavGraph::HasPossibleDiscoveries(int index) const
+{
+    if (!ValidateVertexIndex(index)) {
+        return false;
+    }
+    return Vertices[index].PossibleDiscoveries.Num() > 0;
+}
+
+FVector NavGraph::GetAndPopOneDiscovery(int index)
+{
+    if (!ValidateVertexIndex(index)) {
+        return FVector(0, 0, 0);
+    }
+
+    auto& discoveries = Vertices[index].PossibleDiscoveries;
+    if (discoveries.Num() == 0) {
+        UE_LOG(LogTemp, Warning, TEXT("Trying to pop from empty discoveries list of %d"), index);
+        return FVector(0, 0, 0);
+    }
+
+    auto result = discoveries.Top();
+    discoveries.Pop();
+    return result;
 }
 
 TArray<int> NavGraph::GetNeighbors(int index)
@@ -62,7 +95,7 @@ TArray<int> NavGraph::GetNeighbors(int index)
     return result;
 }
 
-bool NavGraph::ValidateVertexIndex(int index)
+bool NavGraph::ValidateVertexIndex(int index) const
 {
     if (index >= Vertices.Num()) {
         UE_LOG(LogTemp, Warning, TEXT("Trying to add edge to non-existent vertex %d"), index);
@@ -76,7 +109,7 @@ FVector NavGraph::GetVertexByIndex(int index)
     if (!ValidateVertexIndex(index)) {
         return FVector(0, 0, 0);
     }
-    return Vertices[index];
+    return Vertices[index].Location;
 }
 
 void NavGraph::AddEdge(int first, int second, float distance)
@@ -100,9 +133,9 @@ void NavGraph::AddEdge(int first, int second, float distance)
 TArray<std::pair<int, FVector>> NavGraph::FindCloseVertices(const FVector& vertex, float distance) {
     TArray<std::pair<int, FVector>> result;
     for (int i = 0; i < Vertices.Num(); ++i) {
-        float curDistance = (Vertices[i] - vertex).Size();
+        float curDistance = (Vertices[i].Location - vertex).Size();
         if (curDistance < distance) {
-            result.Emplace(i, Vertices[i]);
+            result.Emplace(i, Vertices[i].Location);
         }
     }
     return result;
