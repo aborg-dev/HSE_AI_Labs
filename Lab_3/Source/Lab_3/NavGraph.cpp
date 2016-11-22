@@ -6,6 +6,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "Algo/Reverse.h"
+
 NavGraph::NavGraph()
 {
 }
@@ -62,6 +64,11 @@ void NavGraph::Visit(int index)
     ValidateVertexIndex(index);
 
     Vertices[index].bVisited = true;
+}
+
+int NavGraph::GetVertexCount() const
+{
+    return Vertices.Num();
 }
 
 void NavGraph::AddPossibleDiscovery(int index, const FVector& discovery)
@@ -122,7 +129,7 @@ TArray<int> NavGraph::GetNeighbors(int index)
 
 void NavGraph::ValidateVertexIndex(int index) const
 {
-    ensureMsgf(index < Vertices.Num(),
+    ensureMsgf(index >= 0 && index < Vertices.Num(),
         TEXT("Trying to extract non-existent vertex %d"), index);
 }
 
@@ -149,6 +156,49 @@ void NavGraph::AddEdge(int first, int second, float distance)
             EdgeColor,
             300.f);
     }
+}
+
+bool NavGraph::FindPath(int source, int destination, TArray<int>& path)
+{
+    ValidateVertexIndex(source);
+    ValidateVertexIndex(destination);
+
+    TArray<int> previousVertex;
+    previousVertex.Init(NOT_FOUND, Vertices.Num());
+    previousVertex[source] = source;
+
+    TQueue<int> queue;
+    queue.Enqueue(source);
+
+    while (!queue.IsEmpty() && previousVertex[destination] == NOT_FOUND) {
+        int vertex;
+        queue.Dequeue(vertex);
+
+        for (const auto& edge : Edges[vertex]) {
+            int to = edge.To;
+            if (previousVertex[to] != NOT_FOUND) {
+                continue;
+            }
+
+            previousVertex[to] = vertex;
+            queue.Enqueue(to);
+        }
+    }
+
+    if (previousVertex[destination] == NOT_FOUND) {
+        return false;
+    }
+
+    int vertex = destination;
+    while (vertex != source) {
+        path.Add(vertex);
+        vertex = previousVertex[vertex];
+    }
+    path.Add(source);
+
+    Algo::Reverse(path);
+
+    return true;
 }
 
 TArray<std::pair<int, FVector>> NavGraph::FindCloseVertices(const FVector& vertex, float distance) {

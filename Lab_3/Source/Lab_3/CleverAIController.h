@@ -61,8 +61,12 @@ private:
 
     TArray<int> TraversalStack;
 
-    bool bIsMoving;
-    bool bIsMovingBack;
+    bool bIsMoving = false;
+    bool bIsMovingBack = false;
+
+    TArray<int> CurrentPath;
+    int NextPathVertexIndex;
+    bool bIsFollowingPath = false;
 
     void DiscoverNeighborhood();
 
@@ -73,5 +77,7 @@ private:
     float GetDirectionScale(FVector direction);
 
     bool TryEscape();
+
+    void FollowPath(const TArray<int>& path);
 
 };

@@ -13,7 +13,6 @@ ACleverAIController::ACleverAIController()
     MinAllowedScale = 150.0f;
     InitialScale = 300.0f;
     ScaleDecayRate = 0.9f;
-    bIsMoving = false;
     AcceptableDistanceToTarget = 10.0f;
     CurrentVertex = NO_VERTEX;
     MinAllowedSpeed = 50.f;
@@ -23,6 +22,8 @@ ACleverAIController::ACleverAIController()
 
     MinTryMoveTime = 0.5f;
     TryMoveTime = 0.0f;
+
+    NextPathVertexIndex = NO_VERTEX;
 
     Graph = nullptr;
 }
@@ -85,11 +86,42 @@ void ACleverAIController::Tick(float DeltaSeconds)
         }
     }
 
-    if (!Graph->IsVisited(CurrentVertex)) {
-        DiscoverNeighborhood();
-    }
-    if (!ChooseDirection()) {
-        UE_LOG(LogTemp, Warning, TEXT("Traversal completed"));
+    if (!bIsFollowingPath) {
+        if (!Graph->IsVisited(CurrentVertex)) {
+            DiscoverNeighborhood();
+        }
+        if (!ChooseDirection()) {
+            UE_LOG(LogTemp, Warning, TEXT("Traversal completed"));
+
+            for (int vertex = 0; vertex < Graph->GetVertexCount(); ++vertex) {
+                if (!Graph->HasPossibleDiscoveries(vertex)) {
+                    continue;
+                }
+
+                TArray<int> path;
+                if (Graph->FindPath(CurrentVertex, vertex, path)) {
+                    FollowPath(path);
+                    break;
+                } else {
+                    UE_LOG(LogTemp, Warning, TEXT("Failed to find path from %d to %d"),
+                        CurrentVertex,
+                        vertex);
+                }
+            }
+        }
+    } else {
+        if (NextPathVertexIndex < CurrentPath.Num()) {
+            auto target = Graph->GetVertexByIndex(CurrentPath[NextPathVertexIndex]);
+            UE_LOG(LogTemp, Warning, TEXT("Going to path vertex %d at %s"),
+                CurrentPath[NextPathVertexIndex],
+                *target.ToString());
+            GoToVertex(target);
+            ++NextPathVertexIndex;
+        } else {
+            UE_LOG(LogTemp, Warning, TEXT("Arrived to path end"));
+            bIsFollowingPath = false;
+            TraversalStack.Add(CurrentVertex);
+        }
     }
 }
 
@@ -225,4 +257,25 @@ void ACleverAIController::DiscoverNeighborhood()
             Graph->AddEdge(CurrentVertex, vertex, distance);
         }
     }
+}
+
+void ACleverAIController::FollowPath(const TArray<int>& path)
+{
+    if (path[0] != CurrentVertex) {
+        UE_LOG(LogTemp, Error, TEXT("Path should start with current vertex %d but it starts with %d"),
+            CurrentVertex,
+            path[0]);
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("Started following path of length %d from %d to %d"),
+        path.Num(),
+        path[0],
+        path[path.Num() - 1]);
+
+    CurrentPath = path;
+    NextPathVertexIndex = 0;
+    bIsFollowingPath = true;
+    bIsMovingBack = false;
+    TraversalStack.Empty();
 }

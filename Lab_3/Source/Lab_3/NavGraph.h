@@ -27,6 +27,8 @@ public:
 
     void Visit(int index);
 
+    int GetVertexCount() const;
+
     void AddPossibleDiscovery(int index, const FVector& discovery);
 
     bool HasPossibleDiscoveries(int index) const;
@@ -40,6 +42,8 @@ public:
     TArray<std::pair<int, FVector>> FindCloseVertices(const FVector& vertex, float distance);
 
     void AddEdge(int first, int second, float distance);
+
+    bool FindPath(int source, int destination, TArray<int>& path);
 
 private:
     struct Vertex
