@@ -58,6 +58,7 @@
 # Import only game specific content
 **/Content/*
 !**/Content/GameContent
+!**/Lab_4/Content/*
 
 # Mac Artifacts
 .DS_Store

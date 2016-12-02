@@ -52,17 +52,17 @@ import sys
 
 import unreal_engine as ue
 
-ue.log("Python version: " + str(sys.version))
+ue.log("Python version: ".format(sys.version))
 
 class PythonAIController(object):
 
     # Called at the started of the game
     def begin_play(self):
-        ue.log('Begin Play on PythonAIController class')
+        ue.log("Begin Play on PythonAIController class")
 
     # Called periodically during the game
     def tick(self, delta_seconds : float):
-        ue.log('Tick on PythonAIController class')
+        ue.log("Tick on PythonAIController class")
 ```
 
 Note that the basic methods of the python controller class are the same as for C++ class.
@@ -78,6 +78,23 @@ Go ahead and run the game and keep tracking the output log. You should see messa
 To make out controller useful we will need to implement the strategy that don't just look writes messages to log, but actually does something :)
 
 The first step towards this would be to obtain game information, for example current position of the ball.
+One simple way to do this is to add be able to access GameMode class from python code. To achieve this we do the following:
+
+* Go to Paddle_BP and add a new blueprint variable of type reference to Pong Game Mode.
+* Set this variable during BeginPlay event (this is a simple blueprint exercise, you can see the example of getting the game mode in lower branch of Paddle blueprint)
+* Go to python code and add the following to the `PythonAIController` class:
+```python
+def get_ball_position(self, game_mode):
+    if not game_mode:
+        return 0
+    return game_mode.Ball_Ref.get_actor_location().z
+
+def tick(self, delta_seconds : float):
+    pawn = self.uobject.GetPawn()
+    ball_position = self.get_ball_position(pawn.GameMode)
+    ue.log("Ball position: {}".format(ball_position))
+```
+* Run the game and check that log contains current position of the ball
 
 Then we will need to communicate decisions of our controller to game logic.
 
