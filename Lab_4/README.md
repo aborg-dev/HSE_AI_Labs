@@ -155,6 +155,61 @@ def tick(self, delta_seconds : float):
 
 You should see the size 888864 which is 752 * 394 * 3 (Y * X * Color).
 
+### Process screenshots using python
+
+Next reasonable step would be to verify that screenshots are indeed the right representation of the game field. To do this we will need OpenCV library to work with images.
+OpenCV 3 is a C++ library but there are python2 and python3 bindings available.
+I found following links useful for installing it on OSX:
+
+* http://tsaith.github.io/install-opencv-3-for-python-3-on-osx.html
+* http://seeb0h.github.io/howto/howto-install-homebrew-python-opencv-osx-el-capitan/
+
+For windows, I believe this links might be relevant, though I haven't checked them:
+
+* https://solarianprogrammer.com/2016/09/17/install-opencv-3-with-python-3-on-windows/
+* https://www.scivision.co/install-opencv-3-0-x-for-python-on-windows/
+* http://stackoverflow.com/a/21212023
+
+We'll also use NumPy library for working with multidimensional arrays.
+
+When you've have opencv3 and numpy installed we can do the following to write the current screen to a file.
+
+```python
+import numpy as np
+import cv2
+
+H = 394
+W = 752
+
+class PythonAIController(object):
+
+    def get_screen(self, game_mode):
+        if not game_mode:
+            return None
+        screenshot = np.array(game_mode.ScreenCapturer.Screenshot)
+
+        if len(screenshot) == 0:
+            return None
+
+        return screenshot.reshape((W, H, 3), order='F').swapaxes(0, 1)
+
+    # Called periodically during the game
+    def tick(self, delta_seconds : float):
+        pawn = self.uobject.GetPawn()
+        ball_position = self.get_ball_position(pawn.GameMode)
+        pawn_position = pawn.get_actor_location().z
+        pawn.MovementDirection = sign(ball_position - pawn_position)
+
+        screen = self.get_screen(pawn.GameMode)
+        if not screen is None:
+            ue.log("Screen shape: {}".format(screen.shape))
+            cv2.imwrite("/tmp/screen.png", 255.0 * screen)
+        else:
+            ue.log("Screen is not available")
+```
+
+This code will transform the image to the proper shape and then write it to the file "/tmp/screen.png". Note that we need to multiply the colors by 255 because they have been normalized in our ScreenshotCapturer.
+
 ## Additional materials
 
 DQN networks implemented in TensorFlow for
@@ -162,7 +217,5 @@ DQN networks implemented in TensorFlow for
 * Pong and tetris: https://github.com/asrivat1/DeepLearningVideoGames
 
 Awesome RL resources: https://github.com/aikorea/awesome-rl
-
-OpenCV for OSX: http://seeb0h.github.io/howto/howto-install-homebrew-python-opencv-osx-el-capitan/
 
 DeepRL for TensorFlow: https://github.com/carpedm20/deep-rl-tensorflow

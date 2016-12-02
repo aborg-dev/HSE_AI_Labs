@@ -1,6 +1,8 @@
 import sys
 
 import unreal_engine as ue
+import numpy as np
+import cv2
 
 ue.log("Python version: ".format(sys.version))
 
@@ -10,6 +12,9 @@ def sign(x):
     if x < 0:
         return -1.0
     return 0.0
+
+H = 394
+W = 752
 
 class PythonAIController(object):
 
@@ -25,7 +30,12 @@ class PythonAIController(object):
     def get_screen(self, game_mode):
         if not game_mode:
             return None
-        return game_mode.ScreenCapturer.Screenshot
+        screenshot = np.array(game_mode.ScreenCapturer.Screenshot)
+
+        if len(screenshot) == 0:
+            return None
+
+        return screenshot.reshape((W, H, 3), order='F').swapaxes(0, 1)
 
     # Called periodically during the game
     def tick(self, delta_seconds : float):
@@ -35,4 +45,8 @@ class PythonAIController(object):
         pawn.MovementDirection = sign(ball_position - pawn_position)
 
         screen = self.get_screen(pawn.GameMode)
-        ue.log("Screen size: {}".format(len(screen)))
+        if not screen is None:
+            ue.log("Screen shape: {}".format(screen.shape))
+            cv2.imwrite("/tmp/screen.png", 255.0 * screen)
+        else:
+            ue.log("Screen is not available")
