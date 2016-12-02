@@ -96,7 +96,31 @@ def tick(self, delta_seconds : float):
 ```
 * Run the game and check that log contains current position of the ball
 
-Then we will need to communicate decisions of our controller to game logic.
+### Control the paddle
+
+The next thing is to learn how to communicate decisions of our controller to game logic.
+To do this we will change the paddle blueprint to read the actions of the controller from internal variable and then change this variable in python code.
+
+Create a new float variable MovementDirection with value range [-1.0, 1.0] and use it instead GetVerticalMovementAxis blueprint node.
+Now go to python code and set this variable to the value that will make paddle to follow the ball:
+
+```python
+def sign(x):
+    if x > 0:
+        return 1.0
+    if x < 0:
+        return -1.0
+    return 0.0
+
+class PythonAIController(object):
+    def tick(self, delta_seconds : float):
+        pawn = self.uobject.GetPawn()
+        ball_position = self.get_ball_position(pawn.GameMode)
+        pawn_position = pawn.location.z
+        pawn.MovementDirection = sign(ball_position - pawn_position)
+```
+
+Now run the code and enjoy the infinite ping pong round between bots!
 
 ## Additional materials
 
