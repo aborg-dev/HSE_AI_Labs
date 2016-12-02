@@ -68,5 +68,8 @@
 *.swo
 .ctrlp_cache/
 
+# Python artifacts
+*.pyc
+
 # XCode Artifacts
 */*.xcworkspace/*
