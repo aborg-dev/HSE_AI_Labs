@@ -22,9 +22,17 @@ class PythonAIController(object):
             return 0
         return game_mode.Ball_Ref.get_actor_location().z
 
+    def get_screen(self, game_mode):
+        if not game_mode:
+            return None
+        return game_mode.ScreenCapturer.Screenshot
+
     # Called periodically during the game
     def tick(self, delta_seconds : float):
         pawn = self.uobject.GetPawn()
         ball_position = self.get_ball_position(pawn.GameMode)
         pawn_position = pawn.get_actor_location().z
         pawn.MovementDirection = sign(ball_position - pawn_position)
+
+        screen = self.get_screen(pawn.GameMode)
+        ue.log("Screen size: {}".format(len(screen)))

@@ -122,6 +122,39 @@ class PythonAIController(object):
 
 Now run the code and enjoy the infinite ping pong round between bots!
 
+### Implement ScreenCapturer class to take screenshots
+
+We're almost done! To build really mighty strategy we need to also capture the position of the enemy and feed this to the controller to be able to make intelligent decisions.
+For this we will build a ScreenCapturer class that will take screenshots of current game field and provide them to python code. This will allow us to use them to train Deep Reinforcement Learning model.
+
+This class will make a screenshot every ScreenshotPeriod seconds and store it to variable Screenshot that will be available for access in python.
+The implementation of ScreenCapturer is available here: https://github.com/akashin/HSE_AI_Labs/commit/8cb8c41fa5115b8ae532977a6d694293798925b2
+
+Now let's compile everything and create appropriate blueprint ScreenCapturer_BP.
+
+The final step would be to spawn new instance in PongGameMode blueprint and set it to a variable ScreenshotCapturer of GameMode. Let's do this during BeginPlay event.
+
+Finally, let's test this in python class by printing the shape of current screenshot:
+
+```python
+def get_screen(self, game_mode):
+    if not game_mode:
+        return None
+    return game_mode.ScreenCapturer.Screenshot
+
+# Called periodically during the game
+def tick(self, delta_seconds : float):
+    pawn = self.uobject.GetPawn()
+    ball_position = self.get_ball_position(pawn.GameMode)
+    pawn_position = pawn.get_actor_location().z
+    pawn.MovementDirection = sign(ball_position - pawn_position)
+
+    screen = self.get_screen(pawn.GameMode)
+    ue.log("Screen size: {}".format(len(screen)))
+```
+
+You should see the size 888864 which is 752 * 394 * 3 (Y * X * Color).
+
 ## Additional materials
 
 DQN networks implemented in TensorFlow for
