@@ -13,6 +13,8 @@ AScreenCapturer::AScreenCapturer()
     PrimaryActorTick.bCanEverTick = true;
     ScreenshotPeriod = 0.1;
     ScreenshotTimer = 0.0;
+    Height = 0;
+    Width = 0;
 }
 
 // Called when the game starts or when spawned
@@ -28,7 +30,12 @@ void AScreenCapturer::Tick( float DeltaTime )
 
     ScreenshotTimer += DeltaTime;
     if (ScreenshotTimer > ScreenshotPeriod) {
-        CaptureScreenshot(&Screenshot);
+        if (CaptureScreenshot(&Screenshot)) {
+            UE_LOG(LogTemp, Warning, TEXT("Screenshot taken, dimensions: (%d, %d), timer: %f"),
+                Height,
+                Width,
+                ScreenshotTimer);
+        }
         while (ScreenshotTimer > ScreenshotPeriod) {
             ScreenshotTimer -= ScreenshotPeriod;
         }
@@ -85,6 +92,9 @@ bool AScreenCapturer::CaptureScreenshot(TArray<float>* data)
                    Bitmap.Num());
             return false;
         }
+        Height = X;
+        Width = Y;
+
         float* values = data->GetData();
         for (const FColor& color : Bitmap) {
             *values++ = color.R / 255.0f;
@@ -95,7 +105,6 @@ bool AScreenCapturer::CaptureScreenshot(TArray<float>* data)
         for (const FColor& color : Bitmap) {
             *values++ = color.B / 255.0f;
         }
-        UE_LOG(LogTemp, Warning, TEXT("Screenshot taken, dimensions: (%d, %d)"), X, Y);
     }
 
     return bScreenshotSuccessful;

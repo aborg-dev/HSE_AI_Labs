@@ -210,6 +210,10 @@ class PythonAIController(object):
 
 This code will transform the image to the proper shape and then write it to the file "/tmp/screen.png". Note that we need to multiply the colors by 255 because they have been normalized in our ScreenshotCapturer.
 
+### Use TensorFlow to train RL model
+
+Out final step in this lab would be to train a DQN model using tensorflow.
+
 ## Additional materials
 
 DQN networks implemented in TensorFlow for

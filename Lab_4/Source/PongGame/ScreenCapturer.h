@@ -24,6 +24,12 @@ public:
     TArray<float> Screenshot;
 
     UPROPERTY(EditAnywhere, Category = Screenshot)
+    int Height;
+
+    UPROPERTY(EditAnywhere, Category = Screenshot)
+    int Width;
+
+    UPROPERTY(EditAnywhere, Category = Screenshot)
     float ScreenshotPeriod;
 
 private:

@@ -13,9 +13,6 @@ def sign(x):
         return -1.0
     return 0.0
 
-H = 394
-W = 752
-
 class PythonAIController(object):
 
     # Called at the started of the game
@@ -30,12 +27,16 @@ class PythonAIController(object):
     def get_screen(self, game_mode):
         if not game_mode:
             return None
-        screenshot = np.array(game_mode.ScreenCapturer.Screenshot)
+
+        screen_capturer = game_mode.ScreenCapturer
+        screenshot = np.array(screen_capturer.Screenshot)
+        H = screen_capturer.Height
+        W = screen_capturer.Width
 
         if len(screenshot) == 0:
             return None
 
-        return screenshot.reshape((W, H, 3), order='F').swapaxes(0, 1)
+        return screenshot.reshape((H, W, 3), order='F').swapaxes(0, 1)
 
     # Called periodically during the game
     def tick(self, delta_seconds : float):
