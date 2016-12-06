@@ -29,10 +29,10 @@ void AScreenCapturer::Tick( float DeltaTime )
     Super::Tick( DeltaTime );
 
     if (CaptureScreenshot(&Screenshot)) {
-        UE_LOG(LogTemp, Warning, TEXT("Screenshot taken, dimensions: (%d, %d), timer: %f"),
-               Height,
-               Width,
-               DeltaTime);
+        // UE_LOG(LogTemp, Warning, TEXT("Screenshot taken, dimensions: (%d, %d), timer: %f"),
+        //        Height,
+        //        Width,
+        //        DeltaTime);
     }
 }
 
@@ -42,7 +42,7 @@ void AScreenCapturer::Tick( float DeltaTime )
  * @param data a float array, filled with the screenshot data in [Y,X,color] order.
  * @returns true if successful
  */
-bool AScreenCapturer::CaptureScreenshot(TArray<float>* data)
+bool AScreenCapturer::CaptureScreenshot(TArray<uint8>* data)
 {
     FlushRenderingCommands();
 
@@ -89,15 +89,15 @@ bool AScreenCapturer::CaptureScreenshot(TArray<float>* data)
         Height = X;
         Width = Y;
 
-        float* values = data->GetData();
+        uint8* values = data->GetData();
         for (const FColor& color : Bitmap) {
-            *values++ = color.R / 255.0f;
+            *values++ = color.R;
         }
         for (const FColor& color : Bitmap) {
-            *values++ = color.G / 255.0f;
+            *values++ = color.G;
         }
         for (const FColor& color : Bitmap) {
-            *values++ = color.B / 255.0f;
+            *values++ = color.B;
         }
     }
 

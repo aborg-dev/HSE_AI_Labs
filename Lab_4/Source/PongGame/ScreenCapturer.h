@@ -21,7 +21,7 @@ public:
     virtual void Tick( float DeltaSeconds ) override;
 
     UPROPERTY(EditAnywhere, Category = Screenshot)
-    TArray<float> Screenshot;
+    TArray<uint8> Screenshot;
 
     UPROPERTY(EditAnywhere, Category = Screenshot)
     int Height;
@@ -33,7 +33,7 @@ public:
     float ScreenshotPeriod;
 
 private:
-    bool CaptureScreenshot(TArray<float>* data);
+    bool CaptureScreenshot(TArray<uint8>* data);
 
     float ScreenshotTimer;
 
