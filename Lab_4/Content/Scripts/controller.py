@@ -45,6 +45,7 @@ class PythonAIController(object):
         pawn_position = pawn.get_actor_location().z
         pawn.MovementDirection = sign(ball_position - pawn_position)
 
+        ue.log("Delta seconds: {}".format(delta_seconds))
         screen = self.get_screen(pawn.GameMode)
         if not screen is None:
             ue.log("Screen shape: {}".format(screen.shape))

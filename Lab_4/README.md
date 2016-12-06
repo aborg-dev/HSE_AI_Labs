@@ -214,6 +214,13 @@ This code will transform the image to the proper shape and then write it to the 
 
 Out final step in this lab would be to train a DQN model using tensorflow.
 
+- Store width and height inside the ScreenCapturer class 
+- Fix FPS to 32
+- Change resolution to 240x240
+- Run game in window
+- Move HUD widget numbers
+- Take screenshot every tick
+
 ## Additional materials
 
 DQN networks implemented in TensorFlow for

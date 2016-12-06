@@ -28,17 +28,11 @@ void AScreenCapturer::Tick( float DeltaTime )
 {
     Super::Tick( DeltaTime );
 
-    ScreenshotTimer += DeltaTime;
-    if (ScreenshotTimer > ScreenshotPeriod) {
-        if (CaptureScreenshot(&Screenshot)) {
-            UE_LOG(LogTemp, Warning, TEXT("Screenshot taken, dimensions: (%d, %d), timer: %f"),
-                Height,
-                Width,
-                ScreenshotTimer);
-        }
-        while (ScreenshotTimer > ScreenshotPeriod) {
-            ScreenshotTimer -= ScreenshotPeriod;
-        }
+    if (CaptureScreenshot(&Screenshot)) {
+        UE_LOG(LogTemp, Warning, TEXT("Screenshot taken, dimensions: (%d, %d), timer: %f"),
+               Height,
+               Width,
+               DeltaTime);
     }
 }
 
