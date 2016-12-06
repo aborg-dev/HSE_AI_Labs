@@ -5,8 +5,8 @@ from collections import deque
 
 import unreal_engine as ue
 import numpy as np
+import tensorflow as tf
 import cv2
-import tensorflow
 
 from memory import ExperienceMemory
 from dqn import DQNAgent
@@ -61,7 +61,7 @@ class GameHistory(object):
 class AgentTrainer(object):
     def __init__(self):
         # Create session to store trained parameters
-        self.session = tensorflow.InteractiveSession()
+        self.session = tf.InteractiveSession()
 
         # Create agent for training
         self.agent = DQNAgent(ACTIONS)
@@ -70,7 +70,7 @@ class AgentTrainer(object):
         self.memory = ExperienceMemory(REPLAY_MEMORY)
 
         # Tools for saving and loading networks
-        self.saver = tensorflow.train.Saver()
+        self.saver = tf.train.Saver()
 
         # Last action that agent performed
         self.last_action_index = None
@@ -79,8 +79,8 @@ class AgentTrainer(object):
         self.game_history = GameHistory(REPLAY_MEMORY)
 
     def load_model(self):
-        self.session.run(tensorflow.initialize_all_variables())
-        checkpoint = tensorflow.train.get_checkpoint_state("saved_networks")
+        self.session.run(tf.initialize_all_variables())
+        checkpoint = tf.train.get_checkpoint_state("'/Users/acid/Documents/HSE_AI_Labs/Lab_4/saved_networks/saved_networks")
         if checkpoint and checkpoint.model_checkpoint_path:
             self.saver.restore(self.session, checkpoint.model_checkpoint_path)
             print("Successfully loaded:", checkpoint.model_checkpoint_path)
@@ -88,11 +88,11 @@ class AgentTrainer(object):
             print("Could not find old network weights")
 
     def save_model(self, step):
-        self.saver.save(sess, 'saved_networks/' + GAME + '-dqn', global_step = step)
+        self.saver.save(self.session, '/Users/acid/Documents/HSE_AI_Labs/Lab_4/saved_networks/' + GAME + '-dqn', global_step = step)
 
     def init_training(self):
         # Initialize training parameters
-        self.session.run(tensorflow.initialize_all_variables())
+        self.session.run(tf.initialize_all_variables())
         self.epsilon = INITIAL_EPSILON
         self.t = 0
         self.episode_count = 1000000
@@ -151,7 +151,7 @@ class AgentTrainer(object):
         self.t += 1
 
         # save progress every 10000 iterations
-        if self.t % 10000 == 0:
+        if self.t % 2000 == 0:
             self.save_model(self.t)
 
         # print info
@@ -224,6 +224,7 @@ class PythonAIController(object):
         self.current_score = Score(0, 0)
         self.trainer = AgentTrainer()
         self.trainer.init_training()
+        self.trainer.load_model()
 
     def get_ball_position(self, game_mode):
         if not game_mode:
