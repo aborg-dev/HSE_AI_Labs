@@ -21,6 +21,7 @@ INITIAL_EPSILON = 1 # starting value of epsilon
 REPLAY_MEMORY = 50000 # number of previous transitions to remember
 BATCH_SIZE = 16 # size of minibatch
 FRAME_PER_ACTION = 1
+MODEL_PATH = "/Users/acid/Documents/HSE_AI_Labs/Lab_4/saved_networks/saved_networks" # path to saved models
 
 def transformImage(image):
     image = cv2.cvtColor(cv2.resize(image, (80, 80)), cv2.COLOR_BGR2GRAY)
@@ -80,7 +81,7 @@ class AgentTrainer(object):
 
     def load_model(self):
         self.session.run(tf.initialize_all_variables())
-        checkpoint = tf.train.get_checkpoint_state("'/Users/acid/Documents/HSE_AI_Labs/Lab_4/saved_networks/saved_networks")
+        checkpoint = tf.train.get_checkpoint_state(MODEL_PATH)
         if checkpoint and checkpoint.model_checkpoint_path:
             self.saver.restore(self.session, checkpoint.model_checkpoint_path)
             print("Successfully loaded:", checkpoint.model_checkpoint_path)
@@ -88,7 +89,7 @@ class AgentTrainer(object):
             print("Could not find old network weights")
 
     def save_model(self, step):
-        self.saver.save(self.session, '/Users/acid/Documents/HSE_AI_Labs/Lab_4/saved_networks/' + GAME + '-dqn', global_step = step)
+        self.saver.save(self.session, MODEL_PATH + "/" GAME + "-dqn", global_step = step)
 
     def init_training(self):
         # Initialize training parameters
