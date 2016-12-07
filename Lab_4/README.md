@@ -214,12 +214,34 @@ This code will transform the image to the proper shape and then write it to the 
 
 Out final step in this lab would be to train a DQN model using tensorflow.
 
-- Store width and height inside the ScreenCapturer class 
-- Fix FPS to 32
-- Change resolution to 240x240
-- Run game in window
-- Move HUD widget numbers
-- Take screenshot every tick
+#### Set project FPS
+
+We are going to set FPS to 32 (approx. 31ms between frames) to ensure that time distance between consecutive frames is fixed.
+This is essential for training reinforcement learning model because it needs to predict the reward in the next state, but if there are several possible next states for the current state (introduced by different delays between frames) then model will have hard times predicting the rewards.
+
+To do this we need to go to *Project settings* and in section *Engine - General settings* go to *Framerate subsection* and first check the checkbox *Use fixed frame rate*, then set *Fixed frame rate* to 32.
+
+
+#### Change game resolution
+
+Second performance optimization that we need to make in order to achive reasonable rendering speed is to decrease the resolution of the image to 240x240.
+
+To do this go to editor *Preferences* and in section *Editor - Play* change the resolution for game in window to 240x240.
+Afterwards, try to run the game using *Run in Window* option. You should see much smaller then usual standalone window with the game.
+
+One problem that you may encounter is that the HUD is broken after resolution change. This may be due to the fact that it wasn't intended to be used on such scale or it's just not resizing automatically. You can fix this either by changing the widget dimensions so that it looks normal again or by trying to setup automatic resize.
+
+#### Patch ScreenCapturer to support different width and height
+
+When we changed the resolution of the game, all our hardcoded resolution values in controller.py won't work any more. We need to make our system more flexible.
+First, we start storing Width and Height of the current viewport inside the ScreenCapturer and make this fields accessible to our python controller.
+Then we read their values to do proper reshape using numpy.
+
+Check out this commit for details: https://github.com/akashin/HSE_AI_Labs/commit/3cc8f4cc19bf9eafe792ec837f0043e5fdd6e787
+
+#### Take screenshot every tick
+
+Now that we've fixed FPS, we can freely make screenshots every tick and we'll have the guarantee that the time distance between subsequent screenshots is fixed.
 
 ## Additional materials
 
