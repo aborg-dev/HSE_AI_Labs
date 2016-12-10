@@ -12,26 +12,40 @@ from memory import ExperienceMemory
 from dqn import DQNAgent
 
 GAME = "pong"
-ACTIONS = 3 # number of valid actions
-GAMMA = 0.99 # decay rate of past observations
-OBSERVE = 1000. # timesteps to observe before training
-EXPLORE = 200000. # frames over which to anneal epsilon
-FINAL_EPSILON = 0.0001 # final value of epsilon
-INITIAL_EPSILON = 1 # starting value of epsilon
-REPLAY_MEMORY = 50000 # number of previous transitions to remember
-BATCH_SIZE = 32 # size of minibatch
+ACTIONS = 3  # number of valid actions
+GAMMA = 0.99  # decay rate of past observations
+OBSERVE = 10000.  # timesteps to observe before training
+EXPLORE = 200000.  # frames over which to anneal epsilon
+FINAL_EPSILON = 0.0001  # final value of epsilon
+INITIAL_EPSILON = 1  # starting value of epsilon
+REPLAY_MEMORY = 50000  # number of previous transitions to remember
+BATCH_SIZE = 32  # size of minibatch
 FRAME_PER_ACTION = 1
-MODEL_PATH = "/Users/acid/Documents/HSE_AI_Labs/Lab_4/saved_networks/saved_networks" # path to saved models
+MODEL_PATH = "/Users/acid/Documents/HSE_AI_Labs/Lab_4/saved_networks"  # path to saved models
+
+
+# c = 0
+
 
 def transformImage(image):
-    image = cv2.cvtColor(cv2.resize(image, (80, 80)), cv2.COLOR_BGR2GRAY)
-    image = np.reshape(image, (80, 80, 1))
+    # global c
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    thr, image = cv2.threshold(image, 1, 255, cv2.THRESH_BINARY)
+    # cv2.imwrite("/tmp/screen_full_{}.png".format(c), image)
+    image = cv2.resize(image, (80, 80), cv2.INTER_AREA)
+    thr, image = cv2.threshold(image, 1, 255, cv2.THRESH_BINARY)
+    # cv2.imwrite("/tmp/screen_small_{}.png".format(c), image)
+    # c += 1
+    image = np.reshape(image, (80, 80, 1)).astype(np.float) / 255.0
     return image
 
+
 class MatchResults(object):
-    def __init__(self, reward, playtime):
+    def __init__(self, reward, playtime, score):
         self.reward = reward
         self.playtime = playtime
+        self.score = score
+
 
 class GameHistory(object):
     def __init__(self, history_size):
@@ -39,6 +53,7 @@ class GameHistory(object):
         self.matches = deque()
         self.total_reward = 0
         self.total_playtime = 0
+        self.total_score = 0
 
     def add_match(self, match):
         self.matches.append(match)
@@ -50,6 +65,7 @@ class GameHistory(object):
     def add_stats(self, match, sign):
         self.total_reward += sign * match.reward
         self.total_playtime += sign * match.playtime
+        self.total_score += sign * match.score
 
     def get_average_stats(self):
         matches_len = max(1, len(self.matches))
@@ -57,7 +73,9 @@ class GameHistory(object):
         return {
             "reward": self.total_reward / matches_len,
             "playtime": self.total_playtime / matches_len,
+            "score": self.total_score / matches_len,
         }
+
 
 class AgentTrainer(object):
     def __init__(self):
@@ -97,7 +115,7 @@ class AgentTrainer(object):
             ue.log("Could not find old network weights")
 
     def save_model(self, step):
-        self.saver.save(self.session, MODEL_PATH + "/" + GAME + "-dqn", global_step = step)
+        self.saver.save(self.session, MODEL_PATH + "/" + GAME + "-dqn", global_step=step)
 
     def reset_state(self, initial_state):
         # Get the first state by doing nothing and preprocess the image to 80x80x4
@@ -117,7 +135,7 @@ class AgentTrainer(object):
             else:
                 action_index = self.agent.act(self.s_t)
         else:
-            action_index = 0 # do nothing
+            action_index = 0  # do nothing
         self.last_action_index = action_index
         return action_index
 
@@ -134,8 +152,6 @@ class AgentTrainer(object):
 
         # run the selected action and observe next state and reward
         x_t1, r_t = screen, reward
-        if r_t == 0:
-            r_t = 0.1
         x_t1 = transformImage(x_t1)
         s_t1 = np.append(x_t1, self.s_t[:, :, :3], axis=2)
 
@@ -156,24 +172,19 @@ class AgentTrainer(object):
 
         # print info
         if self.t % 100 == 0:
-            state = ""
-            if self.t <= OBSERVE:
-                state = "observe"
-            elif self.t > OBSERVE and self.t <= OBSERVE + EXPLORE:
-                state = "explore"
-            else:
-                state = "train"
-
             ue.log("TIMESTEP {}, EPSILON {}, GAME_STATS {}".format(
                 self.t, self.epsilon, self.game_history.get_average_stats()))
 
+        self.match_reward += r_t * self.gamma_pow
+        self.match_playtime += 1
+        self.gamma_pow *= GAMMA
+
         if terminal:
-            self.game_history.add_match(MatchResults(self.match_reward, self.match_playtime))
+            self.game_history.add_match(MatchResults(
+                self.match_reward,
+                self.match_playtime,
+                reward))
             self.reset_state(screen)
-        else:
-            self.match_reward += r_t * self.gamma_pow
-            self.match_playtime += 1
-            self.gamma_pow *= GAMMA
 
     def make_train_step(self):
         # sample a minibatch to train on
@@ -182,20 +193,23 @@ class AgentTrainer(object):
         # get the batch variables
         s_j_batch, a_batch, r_batch, s_j1_batch, terminal_batch = zip(*minibatch)
         action_scores_batch = np.array(self.agent.score_actions(s_j1_batch))
-        y_batch = r_batch + GAMMA * (1 - np.array(terminal_batch)) * np.max(action_scores_batch, axis=1)
+        r_future = GAMMA * (1 - np.array(terminal_batch)) * np.max(action_scores_batch, axis=1)
+        y_batch = r_batch + r_future
 
         self.agent.train(y_batch, a_batch, s_j_batch)
 
 
-
 ue.log("Python version: ".format(sys.version))
 
+
+# TODO: Replace this with numpy
 def sign(x):
     if x > 0:
         return 1.0
     if x < 0:
         return -1.0
     return 0.0
+
 
 class Score(object):
     def __init__(self, cpu_score, player_score):
@@ -209,12 +223,14 @@ class Score(object):
         else:
             return 0
 
+
 def get_action_direction(action):
     if action == 0:
         return 0
     if action == 1:
         return 1
     return -1
+
 
 class PythonAIController(object):
 
@@ -251,7 +267,7 @@ class PythonAIController(object):
         return (game_mode.Cpu_Score, game_mode.Player_Score)
 
     # Called periodically during the game
-    def tick(self, delta_seconds : float):
+    def tick(self, delta_seconds: float):
         start_time = time.clock()
 
         pawn = self.uobject.GetPawn()
@@ -266,13 +282,13 @@ class PythonAIController(object):
         if screen is None or len(screen) == 0:
             return
 
-        self.trainer.process_frame(screen, reward * 10, reward != 0)
+        self.trainer.process_frame(screen, reward, reward != 0)
 
         # Make new action
         action = self.trainer.act()
         pawn.MovementDirection = get_action_direction(action)
 
-        # if not screen is None:
+        # if screen is not None:
         #     ue.log("Screen shape: {}".format(screen.shape))
         #     cv2.imwrite("/tmp/screen.png", screen)
         # else:
