@@ -83,7 +83,8 @@ class DQNAgent(object):
 
     def train(self, session, reward_batch, action_batch, state_batch):
         # perform gradient step
-        session.run(self.train_step, feed_dict={
+        _, loss = session.run([self.train_step, self.cost], feed_dict={
             self.y: reward_batch,
             self.a: action_batch,
             self.state_placeholder: state_batch})
+        return loss

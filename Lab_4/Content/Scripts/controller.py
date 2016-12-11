@@ -3,6 +3,10 @@ import time
 import logging
 import os
 
+# LOG_PATH = "/Users/acid/Documents/HSE_AI_Labs/Lab_4/logs"  # path to logs
+# sys.stderr = open(os.path.join(LOG_PATH, "stderr.txt"), "w")
+# sys.stdout = open(os.path.join(LOG_PATH, "stdout.txt"), "w")
+
 from collections import deque
 
 import unreal_engine as ue
@@ -13,6 +17,7 @@ import cv2
 from memory import ExperienceMemory
 from dqn import DQNAgent
 
+# Model
 GAME = "pong"
 ACTIONS = 3  # number of valid actions
 GAMMA = 0.99  # decay rate of past observations
@@ -21,13 +26,24 @@ EXPLORE = 2000000.  # frames over which to anneal epsilon
 FINAL_EPSILON = 0.0001  # final value of epsilon
 INITIAL_EPSILON = 1  # starting value of epsilon
 REPLAY_MEMORY = 50000  # number of previous transitions to remember
+MATCH_MEMORY = 1000  # number of previous matches to remember
 BATCH_SIZE = 32  # size of minibatch
 FRAME_PER_ACTION = 4  # ammount of frames that are skipped before every action
-NUM_THREADS = 3  # number of threads for tensorflow session
 MODEL_PATH = "/Users/acid/Documents/HSE_AI_Labs/Lab_4/saved_networks"  # path to saved models
-# LOG_FILE = os.path.join(MODEL_PATH, "tf.log")  # path to saved models
-tf.logging.set_verbosity(tf.logging.INFO)
-# tf.logging._logger.basicConfig(filename=LOG_FILE, level=logging.INFO)
+
+# Training
+NUM_THREADS = 3  # number of threads for tensorflow session
+
+# Logging
+LOG_PATH = "/Users/acid/Documents/HSE_AI_Labs/Lab_4/logs"  # path to logs
+LOG_FILE = os.path.join(LOG_PATH, "tf.log")  # path to saved models
+LOG_TIMINGS = False  # Whether to log controller speed on every tick
+tf.logging.set_verbosity(tf.logging.DEBUG)
+
+handler = logging.FileHandler(LOG_FILE)
+handler.setLevel(logging.DEBUG)
+handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT, None))
+logging.getLogger('tensorflow').addHandler(handler)
 
 
 c = 0
@@ -85,6 +101,35 @@ class GameHistory(object):
         }
 
 
+class Episode(object):
+    def __init__(self, loss):
+        self.loss = loss
+
+
+class EpisodeHistory(object):
+    def __init__(self, history_size):
+        self.history_size = history_size
+        self.episodes = deque()
+        self.total_loss = 0
+
+    def add_episode(self, episode):
+        self.episodes.append(episode)
+        self.add_stats(episode, +1)
+        if len(self.episodes) > self.history_size:
+            oldest_episode = self.episodes.popleft()
+            self.add_stats(oldest_episode, -1)
+
+    def add_stats(self, episode, sign):
+        self.total_loss += sign * episode.loss
+
+    def get_average_stats(self):
+        episodes_len = max(1, len(self.episodes))
+
+        return {
+            "loss": self.total_loss / episodes_len,
+        }
+
+
 class AgentTrainer(object):
     def __init__(self):
         # Create session to store trained parameters
@@ -104,7 +149,10 @@ class AgentTrainer(object):
         self.last_action_index = None
 
         # Deque to keep track of average reward and play time
-        self.game_history = GameHistory(REPLAY_MEMORY)
+        self.game_history = GameHistory(MATCH_MEMORY)
+
+        # Deque to store losses
+        self.episode_history = EpisodeHistory(REPLAY_MEMORY)
 
     def init_training(self):
         # Initialize training parameters
@@ -169,20 +217,24 @@ class AgentTrainer(object):
 
         # only train if done observing
         if self.t > OBSERVE:
-            self.make_train_step()
+            loss = self.make_train_step()
+            self.episode_history.add_episode(Episode(loss))
 
         # update the old values
         self.s_t = s_t1
         self.t += 1
 
-        # save progress every 10000 iterations
+        # save progress every 2000 iterations
         if self.t % 2000 == 0:
             self.save_model(self.t)
 
         # print info
         if self.t % 100 == 0:
-            ue.log("TIMESTEP {}, EPSILON {}, GAME_STATS {}".format(
-                self.t, self.epsilon, self.game_history.get_average_stats()))
+            ue.log("TIMESTEP {}, EPSILON {}, EPISODE_STATS {}, MATCH_STATS {}".format(
+                self.t,
+                self.epsilon,
+                self.episode_history.get_average_stats(),
+                self.game_history.get_average_stats()))
 
         self.match_reward += r_t * self.gamma_pow
         self.match_playtime += 1
@@ -205,7 +257,7 @@ class AgentTrainer(object):
         r_future = GAMMA * (1 - np.array(terminal_batch)) * np.max(action_scores_batch, axis=1)
         y_batch = r_batch + r_future
 
-        self.agent.train(self.session, y_batch, a_batch, s_j_batch)
+        return self.agent.train(self.session, y_batch, a_batch, s_j_batch)
 
 
 ue.log("Python version: ".format(sys.version))
@@ -277,7 +329,7 @@ class PythonAIController(object):
 
     # Called periodically during the game
     def tick(self, delta_seconds: float):
-        # start_time = time.clock()
+        start_time = time.clock()
 
         pawn = self.uobject.GetPawn()
         game_mode = pawn.GameMode
@@ -303,6 +355,7 @@ class PythonAIController(object):
         # else:
         #     ue.log("Screen is not available")
 
-        # finish_time = time.clock()
-        # elapsed = finish_time - start_time
-        # ue.log("Delta seconds: {}, time elapsed: {}".format(delta_seconds, elapsed))
+        finish_time = time.clock()
+        elapsed = finish_time - start_time
+        if LOG_TIMINGS:
+            ue.log("Delta seconds: {}, time elapsed: {}".format(delta_seconds, elapsed))
