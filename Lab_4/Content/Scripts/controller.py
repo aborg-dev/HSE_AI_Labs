@@ -88,7 +88,7 @@ class GameHistory(object):
 class AgentTrainer(object):
     def __init__(self):
         # Create session to store trained parameters
-        self.session = tf.InteractiveSession(
+        self.session = tf.Session(
             config=tf.ConfigProto(intra_op_parallelism_threads=NUM_THREADS))
 
         # Create agent for training
@@ -142,7 +142,7 @@ class AgentTrainer(object):
             if np.random.random() <= self.epsilon:
                 action_index = np.random.randint(0, ACTIONS)
             else:
-                action_index = self.agent.act(self.s_t)
+                action_index = self.agent.act(self.session, self.s_t)
         else:
             action_index = self.last_action_index  # do the same thing as before
         self.last_action_index = action_index
@@ -201,11 +201,11 @@ class AgentTrainer(object):
 
         # get the batch variables
         s_j_batch, a_batch, r_batch, s_j1_batch, terminal_batch = zip(*minibatch)
-        action_scores_batch = np.array(self.agent.score_actions(s_j1_batch))
+        action_scores_batch = np.array(self.agent.score_actions(self.session, s_j1_batch))
         r_future = GAMMA * (1 - np.array(terminal_batch)) * np.max(action_scores_batch, axis=1)
         y_batch = r_batch + r_future
 
-        self.agent.train(y_batch, a_batch, s_j_batch)
+        self.agent.train(self.session, y_batch, a_batch, s_j_batch)
 
 
 ue.log("Python version: ".format(sys.version))

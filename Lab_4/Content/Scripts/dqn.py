@@ -60,6 +60,7 @@ def createNetwork(action_count):
 
     return s, readout, h_fc1
 
+
 class DQNAgent(object):
     def __init__(self, action_count):
         self.action_count = action_count
@@ -73,17 +74,16 @@ class DQNAgent(object):
         self.train_step = tf.train.AdamOptimizer(1e-6).minimize(self.cost)
 
     # think about putting observation as an argument here
-    def act(self, state):
-        scores = self.score_actions([state])[0]
+    def act(self, session, state):
+        scores = self.score_actions(session, [state])[0]
         return np.argmax(scores)
 
-    def score_actions(self, state_batch):
-        return self.readout.eval(feed_dict={self.state_placeholder : state_batch})
+    def score_actions(self, session, state_batch):
+        return session.run(self.readout, feed_dict={self.state_placeholder: state_batch})
 
-    def train(self, reward_batch, action_batch, state_batch):
+    def train(self, session, reward_batch, action_batch, state_batch):
         # perform gradient step
-        self.train_step.run(feed_dict = {
-            self.y : reward_batch,
-            self.a : action_batch,
-            self.state_placeholder : state_batch}
-        )
+        session.run(self.train_step, feed_dict={
+            self.y: reward_batch,
+            self.a: action_batch,
+            self.state_placeholder: state_batch})
