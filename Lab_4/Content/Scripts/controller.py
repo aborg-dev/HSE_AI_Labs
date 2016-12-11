@@ -48,6 +48,9 @@ handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT, None))
 logging.getLogger('tensorflow').addHandler(handler)
 
 
+ue.log("Python version: ".format(sys.version))
+
+
 c = 0
 
 
@@ -260,18 +263,6 @@ class AgentTrainer(object):
         return self.agent.train(self.session, y_batch, a_batch, s_j_batch)
 
 
-ue.log("Python version: ".format(sys.version))
-
-
-# TODO: Replace this with numpy
-def sign(x):
-    if x > 0:
-        return 1.0
-    if x < 0:
-        return -1.0
-    return 0.0
-
-
 class Score(object):
     def __init__(self, cpu_score, player_score):
         self.score = (cpu_score, player_score)
@@ -349,12 +340,7 @@ class PythonAIController(object):
         action = self.trainer.act()
         pawn.MovementDirection = get_action_direction(action)
 
-        # if screen is not None:
-        #     ue.log("Screen shape: {}".format(screen.shape))
-        #     cv2.imwrite("/tmp/screen.png", screen)
-        # else:
-        #     ue.log("Screen is not available")
-
+        # Log elapsed time
         finish_time = time.clock()
         elapsed = finish_time - start_time
         if LOG_TIMINGS:
