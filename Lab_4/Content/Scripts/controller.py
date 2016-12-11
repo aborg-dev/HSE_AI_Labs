@@ -1,5 +1,7 @@
 import sys
 import time
+import logging
+import os
 
 from collections import deque
 
@@ -15,27 +17,33 @@ GAME = "pong"
 ACTIONS = 3  # number of valid actions
 GAMMA = 0.99  # decay rate of past observations
 OBSERVE = 10000.  # timesteps to observe before training
-EXPLORE = 200000.  # frames over which to anneal epsilon
+EXPLORE = 2000000.  # frames over which to anneal epsilon
 FINAL_EPSILON = 0.0001  # final value of epsilon
 INITIAL_EPSILON = 1  # starting value of epsilon
 REPLAY_MEMORY = 50000  # number of previous transitions to remember
 BATCH_SIZE = 32  # size of minibatch
-FRAME_PER_ACTION = 1
+FRAME_PER_ACTION = 4  # ammount of frames that are skipped before every action
+NUM_THREADS = 3  # number of threads for tensorflow session
 MODEL_PATH = "/Users/acid/Documents/HSE_AI_Labs/Lab_4/saved_networks"  # path to saved models
+# LOG_FILE = os.path.join(MODEL_PATH, "tf.log")  # path to saved models
+tf.logging.set_verbosity(tf.logging.INFO)
+# tf.logging._logger.basicConfig(filename=LOG_FILE, level=logging.INFO)
 
 
-# c = 0
+c = 0
 
 
 def transformImage(image):
-    # global c
+    global c
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     thr, image = cv2.threshold(image, 1, 255, cv2.THRESH_BINARY)
-    # cv2.imwrite("/tmp/screen_full_{}.png".format(c), image)
+    if c < 500:
+        cv2.imwrite("/tmp/screen_full_{}.png".format(c), image)
     image = cv2.resize(image, (80, 80), cv2.INTER_AREA)
     thr, image = cv2.threshold(image, 1, 255, cv2.THRESH_BINARY)
-    # cv2.imwrite("/tmp/screen_small_{}.png".format(c), image)
-    # c += 1
+    if c < 500:
+        cv2.imwrite("/tmp/screen_small_{}.png".format(c), image)
+        c += 1
     image = np.reshape(image, (80, 80, 1)).astype(np.float) / 255.0
     return image
 
@@ -80,7 +88,8 @@ class GameHistory(object):
 class AgentTrainer(object):
     def __init__(self):
         # Create session to store trained parameters
-        self.session = tf.InteractiveSession()
+        self.session = tf.InteractiveSession(
+            config=tf.ConfigProto(intra_op_parallelism_threads=NUM_THREADS))
 
         # Create agent for training
         self.agent = DQNAgent(ACTIONS)
@@ -135,7 +144,7 @@ class AgentTrainer(object):
             else:
                 action_index = self.agent.act(self.s_t)
         else:
-            action_index = 0  # do nothing
+            action_index = self.last_action_index  # do the same thing as before
         self.last_action_index = action_index
         return action_index
 
@@ -268,7 +277,7 @@ class PythonAIController(object):
 
     # Called periodically during the game
     def tick(self, delta_seconds: float):
-        start_time = time.clock()
+        # start_time = time.clock()
 
         pawn = self.uobject.GetPawn()
         game_mode = pawn.GameMode
@@ -294,6 +303,6 @@ class PythonAIController(object):
         # else:
         #     ue.log("Screen is not available")
 
-        finish_time = time.clock()
-        elapsed = finish_time - start_time
+        # finish_time = time.clock()
+        # elapsed = finish_time - start_time
         # ue.log("Delta seconds: {}, time elapsed: {}".format(delta_seconds, elapsed))
