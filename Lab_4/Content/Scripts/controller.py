@@ -30,11 +30,13 @@ MATCH_MEMORY = 1000  # number of previous matches to remember
 BATCH_SIZE = 32  # size of minibatch
 FRAME_PER_ACTION = 4  # ammount of frames that are skipped before every action
 MODEL_PATH = "/Users/acid/Documents/HSE_AI_Labs/Lab_4/saved_networks"  # path to saved models
+SNAPSHOT_PERIOD = 2000  # periodicity of saving current model
 
 # Training
 NUM_THREADS = 3  # number of threads for tensorflow session
 
 # Logging
+LOG_PERIOD = 100  # periodicity of logging
 LOG_PATH = "/Users/acid/Documents/HSE_AI_Labs/Lab_4/logs"  # path to logs
 LOG_FILE = os.path.join(LOG_PATH, "tf.log")  # path to saved models
 LOG_TIMINGS = False  # Whether to log controller speed on every tick
@@ -159,8 +161,6 @@ class AgentTrainer(object):
         self.session.run(tf.initialize_all_variables())
         self.epsilon = INITIAL_EPSILON
         self.t = 0
-        self.episode_count = 1000000
-        self.max_steps = 1000000
         self.last_action_index = 0
 
     def load_model(self):
@@ -224,12 +224,12 @@ class AgentTrainer(object):
         self.s_t = s_t1
         self.t += 1
 
-        # save progress every 2000 iterations
-        if self.t % 2000 == 0:
+        # save progress every SNAPSHOT_PERIOD iterations
+        if self.t % SNAPSHOT_PERIOD == 0:
             self.save_model(self.t)
 
         # print info
-        if self.t % 100 == 0:
+        if self.t % LOG_PERIOD == 0:
             ue.log("TIMESTEP {}, EPSILON {}, EPISODE_STATS {}, MATCH_STATS {}".format(
                 self.t,
                 self.epsilon,
