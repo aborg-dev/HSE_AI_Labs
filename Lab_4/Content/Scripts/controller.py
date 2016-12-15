@@ -14,6 +14,8 @@ import numpy as np
 import tensorflow as tf
 import cv2
 
+from scipy.ndimage.filters import maximum_filter
+
 from memory import ExperienceMemory
 from dqn import DQNAgent
 
@@ -25,19 +27,19 @@ OBSERVE = 10000.  # timesteps to observe before training
 EXPLORE = 2000000.  # frames over which to anneal epsilon
 FINAL_EPSILON = 0.0001  # final value of epsilon
 INITIAL_EPSILON = 1  # starting value of epsilon
-REPLAY_MEMORY = 50000  # number of previous transitions to remember
+REPLAY_MEMORY = 100000  # number of previous transitions to remember
 MATCH_MEMORY = 1000  # number of previous matches to remember
-BATCH_SIZE = 32  # size of minibatch
-FRAME_PER_ACTION = 4  # ammount of frames that are skipped before every action
-MODEL_PATH = "/Users/acid/Documents/HSE_AI_Labs/Lab_4/saved_networks"  # path to saved models
-SNAPSHOT_PERIOD = 2000  # periodicity of saving current model
+BATCH_SIZE = 64  # size of minibatch
+FRAME_PER_ACTION = 1  # ammount of frames that are skipped before every action
+MODEL_PATH = "/home/acid/Repos/HSE_AI_Labs/Lab_4/saved_networks"  # path to saved models
+SNAPSHOT_PERIOD = 10000  # periodicity of saving current model
 
 # Training
 NUM_THREADS = 3  # number of threads for tensorflow session
 
 # Logging
 LOG_PERIOD = 100  # periodicity of logging
-LOG_PATH = "/Users/acid/Documents/HSE_AI_Labs/Lab_4/logs"  # path to logs
+LOG_PATH = "/home/acid/Repos/HSE_AI_Labs/Lab_4/logs"  # path to logs
 LOG_FILE = os.path.join(LOG_PATH, "tf.log")  # path to saved models
 LOG_TIMINGS = False  # Whether to log controller speed on every tick
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -60,6 +62,15 @@ def transformImage(image):
     thr, image = cv2.threshold(image, 1, 255, cv2.THRESH_BINARY)
     if c < 500:
         cv2.imwrite("/tmp/screen_full_{}.png".format(c), image)
+    image = maximum_filter(image, size=(2, 4))
+    if c < 500:
+        cv2.imwrite("/tmp/screen_blur_{}.png".format(c), image)
+
+    thr, image = cv2.threshold(image, 1, 255, cv2.THRESH_BINARY)
+
+    if c < 500:
+        cv2.imwrite("/tmp/screen_thr_{}.png".format(c), image)
+
     image = cv2.resize(image, (80, 80), cv2.INTER_AREA)
     thr, image = cv2.threshold(image, 1, 255, cv2.THRESH_BINARY)
     if c < 500:
@@ -161,7 +172,7 @@ class AgentTrainer(object):
 
     def init_training(self):
         # Initialize training parameters
-        self.session.run(tf.initialize_all_variables())
+        self.session.run(tf.global_variables_initializer())
         self.epsilon = INITIAL_EPSILON
         self.t = 0
         self.last_action_index = 0
@@ -255,10 +266,23 @@ class AgentTrainer(object):
         minibatch = self.memory.sample(BATCH_SIZE)
 
         # get the batch variables
-        s_j_batch, a_batch, r_batch, s_j1_batch, terminal_batch = zip(*minibatch)
+        s_j_batch = [d[0] for d in minibatch]
+        a_batch = [d[1] for d in minibatch]
+        r_batch = [d[2] for d in minibatch]
+        s_j1_batch = [d[3] for d in minibatch]
+
+        # get the batch variables
+        # s_j_batch, a_batch, r_batch, s_j1_batch, terminal_batch = zip(*minibatch)
         action_scores_batch = np.array(self.agent.score_actions(self.session, s_j1_batch))
-        r_future = GAMMA * (1 - np.array(terminal_batch)) * np.max(action_scores_batch, axis=1)
-        y_batch = r_batch + r_future
+        y_batch = []
+        for i in range(0, len(minibatch)):
+            # if terminal only equals reward
+            if minibatch[i][4]:
+                y_batch.append(r_batch[i])
+            else:
+                y_batch.append(r_batch[i] + GAMMA * np.max(action_scores_batch[i]))
+        # r_future = GAMMA * (1 - np.array(terminal_batch)) * np.max(action_scores_batch, axis=1)
+        # y_batch = r_batch + r_future
 
         return self.agent.train(self.session, y_batch, a_batch, s_j_batch)
 
