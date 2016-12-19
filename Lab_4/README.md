@@ -116,7 +116,7 @@ class PythonAIController(object):
     def tick(self, delta_seconds : float):
         pawn = self.uobject.GetPawn()
         ball_position = self.get_ball_position(pawn.GameMode)
-        pawn_position = pawn.location.z
+        pawn_position = pawn.get_actor_location().z
         pawn.MovementDirection = sign(ball_position - pawn_position)
 ```
 
