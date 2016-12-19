@@ -11,7 +11,7 @@ ACleverAIController::ACleverAIController()
 
 float ACleverAIController::ComputeHouseScore(float Distance, float TimeLeft) const
 {
-    return - fmax(Distance - 150.f, 1.f) * (TimeLeft * TimeLeft);
+    return (Distance + 45* TimeLeft);
 }
 
 void ACleverAIController::Tick(float DeltaSeconds)
@@ -73,7 +73,7 @@ void ACleverAIController::Tick(float DeltaSeconds)
         float TimeLeft = GetHouseTimeLeft(HouseNumber);
         float Score = ComputeHouseScore(Distance, TimeLeft);
 
-        if (BestOrder == -1 || Score > BestScore) {
+        if (BestOrder == -1 || Score < BestScore) {
             BestScore = Score;
             BestOrder = i;
         }
