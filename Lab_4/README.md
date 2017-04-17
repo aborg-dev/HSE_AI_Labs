@@ -75,7 +75,7 @@ Go ahead and run the game and keep tracking the output log. You should see messa
 
 ### Implement actual strategy
 
-To make out controller useful we will need to implement the strategy that don't just look writes messages to log, but actually does something :)
+To make out controller useful we will need to implement the strategy that doesn't just writes messages to the log, but actually does something :)
 
 The first step towards this would be to obtain game information, for example current position of the ball.
 One simple way to do this is to add be able to access GameMode class from python code. To achieve this we do the following:
