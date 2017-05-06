@@ -21,9 +21,9 @@ LOG_TIMINGS = False  # Whether to log controller speed on every tick
 config = {
     "action_count": ACTIONS,
     "gamma": 0.99,  # decay rate of past observations
-    "observe_step_count": 10000,  # timesteps to observe before training
+    "observe_step_count": 100,  # timesteps to observe before training
     "explore_step_count": 2000000,  # frames over which to anneal epsilon
-    "initial_epsilon": 0.0001,  # starting value of epsilon
+    "initial_epsilon": 1.0,  # starting value of epsilon
     "final_epsilon": 0.0001,  # final value of epsilon
     "replay_memory_size": 100000,  # number of previous transitions to remember
     "match_memory_size": 1000,  # number of previous matches to remember
