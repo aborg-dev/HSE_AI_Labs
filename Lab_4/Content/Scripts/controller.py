@@ -13,7 +13,7 @@ ACTIONS = 3  # number of valid actions
 # Experiment description.
 GAME = "pong"
 MODEL = "dqn"
-VERSION = 1  # Bump this for each new experiment.
+VERSION = 2  # Bump this for each new experiment.
 
 EXPERIMENT_PATH = os.path.join("/tmp", GAME, MODEL, str(VERSION))
 # "/home/acid/Repos/HSE_AI_Labs/Lab_4/saved_networks"  # path to saved models
@@ -26,7 +26,7 @@ SEED = 42
 # Logging.
 LOG_TIMINGS = False  # Whether to log controller speed on every tick
 
-STEPS_ELAPSED = 260000
+STEPS_ELAPSED = 0
 
 config = {
     "action_count": ACTIONS,

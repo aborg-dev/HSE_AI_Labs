@@ -43,6 +43,8 @@ class AgentTrainer(object):
 
         # Create agent for training
         self.agent = DQNAgent(self.action_count)
+        self.step = tf.Variable(0, name="step")
+        self.increment_step = self.step.assign_add(1)
 
         # Create memory to store observations
         self.memory = ExperienceMemory(config["replay_memory_size"])
@@ -71,9 +73,16 @@ class AgentTrainer(object):
     def init_training(self):
         # Initialize training parameters
         self.session.run(tf.global_variables_initializer())
-        self.epsilon = self.INITIAL_EPSILON
-        self.t = 0
+        self.t = self.step.eval(self.session)
+        self.epsilon = self.compute_epsilon(self.t)
         self.last_action_index = None
+
+    def compute_epsilon(self, t):
+        if t < self.OBSERVE:
+            return self.INITIAL_EPSILON
+
+        alpha = t / self.EXPLORE
+        return self.INITIAL_EPSILON * (1 - alpha) + self.FINAL_EPSILON * alpha
 
     def load_model(self, path):
         checkpoint = tf.train.get_checkpoint_state(path)
@@ -119,8 +128,7 @@ class AgentTrainer(object):
         a_t[self.last_action_index] = 1
 
         # scale down epsilon
-        if self.epsilon > self.FINAL_EPSILON and self.t > self.OBSERVE:
-            self.epsilon -= (self.INITIAL_EPSILON - self.FINAL_EPSILON) / self.EXPLORE
+        self.epsilon = self.compute_epsilon(self.t)
 
         # run the selected action and observe next state and reward
         x_t1, r_t = screen, reward
@@ -138,7 +146,7 @@ class AgentTrainer(object):
 
         # update the old values
         self.s_t = s_t1
-        self.t += 1
+        self.t = self.session.run(self.increment_step)
 
         # print info
         if self.t % self.LOG_PERIOD == 0:
