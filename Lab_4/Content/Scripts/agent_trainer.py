@@ -31,16 +31,13 @@ class AgentTrainer(object):
         # Create session to store trained parameters
         self.session = tf.Session()
 
-        # now = datetime.datetime.now()
-        # now_string = now.strftime("%Y.%m.%d_%H:%M:%S")
-
+        # Create and configure logging directories and file handles.
         experiment_path = config["experiment_path"]
+        os.makedirs(experiment_path, exist_ok=True)
         summary_dir = os.path.join(experiment_path, "summary")
-        if not os.path.exists(summary_dir):
-            os.makedirs(summary_dir)
+        os.makedirs(summary_dir, exist_ok=True)
         self.summary_writer = tf.summary.FileWriter(summary_dir)
-
-        self.summary_log = open(os.path.join(summary_dir, "log.txt"), "a")
+        self.summary_output = open(os.path.join(experiment_path, "log.txt"), "a")
 
         self.action_count = config["action_count"]
 
@@ -87,10 +84,9 @@ class AgentTrainer(object):
             print("Could not find old network weights")
 
     def save_model(self, path):
-        dqn_path = os.path.join(path, 'dqn')
-        if not os.path.exists(dqn_path):
-            os.makedirs(dqn_path)
-        self.saver.save(self.session, dqn_path, global_step=self.t)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        self.saver.save(self.session, path, global_step=self.t)
 
     def reset_state(self, initial_state):
         # Get the first state by doing nothing and preprocess the image to 80x80x4
@@ -155,8 +151,8 @@ class AgentTrainer(object):
             print(message)
             sys.stdout.flush()
 
-            self.summary_log.write(message)
-            self.summary_log.flush()
+            self.summary_output.write(message)
+            self.summary_output.flush()
 
             if summaries is not None:
                 self.summary_writer.add_summary(summaries, self.t)
