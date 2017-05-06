@@ -142,7 +142,9 @@ class AgentTrainer(object):
 
         # print info
         if self.t % self.LOG_PERIOD == 0:
-            message = "TIMESTEP {}, EPSILON {}, EPISODE_STATS {}, MATCH_STATS {}\n".format(
+            now_string = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
+            message = "TIME {}, TIMESTEP {}, EPSILON {}, EPISODE_STATS {}, MATCH_STATS {}\n".format(
+                    now_string,
                     self.t,
                     self.epsilon,
                     self.episode_history.get_average_stats(),
