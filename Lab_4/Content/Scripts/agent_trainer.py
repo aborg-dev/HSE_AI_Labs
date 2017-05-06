@@ -31,15 +31,16 @@ class AgentTrainer(object):
         # Create session to store trained parameters
         self.session = tf.Session()
 
-        now = datetime.datetime.now()
-        now_string = now.strftime("%Y.%m.%d_%H:%M:%S")
+        # now = datetime.datetime.now()
+        # now_string = now.strftime("%Y.%m.%d_%H:%M:%S")
 
-        summary_dir = os.path.join("/tmp/pong_dqn", now_string)
+        experiment_path = config["experiment_path"]
+        summary_dir = os.path.join(experiment_path, "summary")
         if not os.path.exists(summary_dir):
             os.makedirs(summary_dir)
         self.summary_writer = tf.summary.FileWriter(summary_dir)
 
-        self.summary_log = open(os.path.join(summary_dir, "log.txt"), "w")
+        self.summary_log = open(os.path.join(summary_dir, "log.txt"), "a")
 
         self.action_count = config["action_count"]
 
