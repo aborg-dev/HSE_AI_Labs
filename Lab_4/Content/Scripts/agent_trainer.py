@@ -95,7 +95,7 @@ class AgentTrainer(object):
     def save_model(self, path):
         if not os.path.exists(path):
             os.makedirs(path)
-        self.saver.save(self.session, path, global_step=self.t)
+        self.saver.save(self.session, path + "/dqn", global_step=self.t)
 
     def reset_state(self, initial_state):
         # Get the first state by doing nothing and preprocess the image to 80x80x4

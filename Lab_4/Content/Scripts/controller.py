@@ -15,7 +15,7 @@ GAME = "pong"
 MODEL = "dqn"
 VERSION = 2  # Bump this for each new experiment.
 
-EXPERIMENT_PATH = os.path.join("/tmp", GAME, MODEL, str(VERSION))
+EXPERIMENT_PATH = os.path.join("/home/acid", GAME, MODEL, str(VERSION))
 # "/home/acid/Repos/HSE_AI_Labs/Lab_4/saved_networks"  # path to saved models
 MODEL_PATH = os.path.join(EXPERIMENT_PATH, "checkpoints")
 LOG_PATH = os.path.join(EXPERIMENT_PATH, "logs")
