@@ -30,7 +30,7 @@ STEPS_ELAPSED = 0
 
 config = {
     "action_count": ACTIONS,
-    "gamma": 0.99,  # decay rate of past observations
+    "gamma": 0.9999,  # decay rate of past observations
     "observe_step_count": 100,  # timesteps to observe before training
     "explore_step_count": 2000000 - STEPS_ELAPSED,  # frames over which to anneal epsilon
     "initial_epsilon": 1.0 - 1.0 * (STEPS_ELAPSED / 2000000.0),  # starting value of epsilon
