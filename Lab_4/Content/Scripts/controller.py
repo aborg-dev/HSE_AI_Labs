@@ -13,7 +13,7 @@ ACTIONS = 3  # number of valid actions
 # Experiment description.
 GAME = "pong"
 MODEL = "dqn"
-VERSION = 2  # Bump this for each new experiment.
+VERSION = 3  # Bump this for each new experiment.
 
 EXPERIMENT_PATH = os.path.join("/home/acid", GAME, MODEL, str(VERSION))
 # "/home/acid/Repos/HSE_AI_Labs/Lab_4/saved_networks"  # path to saved models
