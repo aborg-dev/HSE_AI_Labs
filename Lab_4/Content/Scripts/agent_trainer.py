@@ -81,6 +81,9 @@ class AgentTrainer(object):
         if t < self.OBSERVE:
             return self.INITIAL_EPSILON
 
+        if t > self.EXPLORE:
+            return self.FINAL_EPSILON
+
         alpha = t / self.EXPLORE
         return self.INITIAL_EPSILON * (1 - alpha) + self.FINAL_EPSILON * alpha
 
