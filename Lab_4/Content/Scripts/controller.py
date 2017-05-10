@@ -26,18 +26,16 @@ SEED = 42
 # Logging.
 LOG_TIMINGS = False  # Whether to log controller speed on every tick
 
-STEPS_ELAPSED = 0
-
 config = {
     "action_count": ACTIONS,
-    "gamma": 0.9999,  # decay rate of past observations
-    "observe_step_count": 100,  # timesteps to observe before training
-    "explore_step_count": 2000000 - STEPS_ELAPSED,  # frames over which to anneal epsilon
-    "initial_epsilon": 1.0 - 1.0 * (STEPS_ELAPSED / 2000000.0),  # starting value of epsilon
+    "gamma": 1,  # decay rate of past observations
+    "observe_step_count": 500,  # timesteps to observe before training
+    "explore_step_count": 2000000,  # frames over which to anneal epsilon
+    "initial_epsilon": 1.0,  # starting value of epsilon
     "final_epsilon": 0.0001,  # final value of epsilon
     "replay_memory_size": 100000,  # number of previous transitions to remember
     "match_memory_size": 1000,  # number of previous matches to remember
-    "batch_size": 64,  # size of minibatch
+    "batch_size": 256,  # size of minibatch
     "frame_per_action": 1,  # ammount of frames that are skipped before every action
     "log_period": 100,  # periodicity of logging
     "experiment_path": EXPERIMENT_PATH,
