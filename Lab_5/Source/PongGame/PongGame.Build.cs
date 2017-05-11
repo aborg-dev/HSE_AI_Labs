@@ -29,6 +29,9 @@ public class PongGame : ModuleRules
 		// Uncomment if you are using Slate UI
 		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 
+        // Turn on exceptions, as msgpack needs them.
+        UEBuildConfiguration.bForceEnableExceptions = true;
+
         System.Console.WriteLine("Adding include path for msgpack: " + MsgPackPath);
         PublicIncludePaths.Add(MsgPackPath);
 		
