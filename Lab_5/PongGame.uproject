@@ -1,0 +1,23 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{1C5A5331-3905-0906-0013-012AB626B1CE}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "PongGame",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"AIModule"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "UnrealEnginePython",
+			"Enabled": true
+		}
+	]
+}
