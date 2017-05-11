@@ -1,3 +1,6 @@
 [submodule "Lab_5/Source/ThirtParty/msgpack-c"]
 	path = Lab_5/Source/ThirtParty/msgpack-c
 	url = https://github.com/msgpack/msgpack-c.git
+[submodule "Lab_5/Source/ThirdParty/msgpack-c"]
+	path = Lab_5/Source/ThirdParty/msgpack-c
+	url = https://github.com/msgpack/msgpack-c.git
