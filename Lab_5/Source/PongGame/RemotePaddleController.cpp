@@ -34,4 +34,6 @@ void ARemotePaddleController::Tick(float DeltaTime)
         TotalTime -= 2;
     }
     paddle->MovementDirection = TotalTime;
+
+    Relay.Tick();
 }

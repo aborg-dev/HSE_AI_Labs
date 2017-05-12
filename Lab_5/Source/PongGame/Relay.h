@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <string>
+
 /**
  * 
  */
@@ -11,5 +13,11 @@ public:
 	FRelay();
 	~FRelay();
 
+    void Tick();
+
     TArray<uint8> Act(const TArray<uint8>& state);
+
+private:
+
+    std::string host;
 };
