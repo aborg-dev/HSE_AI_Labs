@@ -6,6 +6,8 @@
 #include "Runtime/Slate/Public/Framework/Application/SlateApplication.h"
 #include "SceneViewport.h"
 
+#include <vector>
+
 // Sets default values
 AScreenCapturer::AScreenCapturer()
 {
@@ -42,7 +44,7 @@ void AScreenCapturer::Tick( float DeltaTime )
  * @param data a float array, filled with the screenshot data in [Y,X,color] order.
  * @returns true if successful
  */
-bool AScreenCapturer::CaptureScreenshot(TArray<uint8>* data)
+bool AScreenCapturer::CaptureScreenshot(std::vector<char>* data)
 {
     FlushRenderingCommands();
 
@@ -64,7 +66,7 @@ bool AScreenCapturer::CaptureScreenshot(TArray<uint8>* data)
 
     int X = Viewport->GetSizeXY().X;
     int Y = Viewport->GetSizeXY().Y;
-    data->SetNumUninitialized(X * Y * 3);
+    data->resize(X * Y * 3);
 
     TSharedPtr<SWidget> ViewportPtr = GEngine->GameViewport->GetGameViewportWidget();
 
@@ -89,7 +91,7 @@ bool AScreenCapturer::CaptureScreenshot(TArray<uint8>* data)
         Height = X;
         Width = Y;
 
-        uint8* values = data->GetData();
+        char* values = data->data();
         for (const FColor& color : Bitmap) {
             *values++ = color.R;
         }

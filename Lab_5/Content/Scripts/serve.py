@@ -15,10 +15,12 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         # self.request is the TCP socket connected to the client
-        self.data = self.request.recv(1024).strip()
+        self.data = self.request.recv(100000).strip()
         print("{} wrote {} bytes".format(self.client_address[0], len(self.data)))
         unpacked = msgpack.unpackb(self.data)
-        print("Unpacked data: {}".format(unpacked))
+        print("Unpacked data length: {}".format(len(unpacked)))
+        print("Screen data length: {}".format(len(unpacked[5])))
+        # print("Unpacked data: {}".format(unpacked))
         # just send back the same data, but upper-cased
         response = msgpack.packb(-1.0)
         self.request.sendall(response)

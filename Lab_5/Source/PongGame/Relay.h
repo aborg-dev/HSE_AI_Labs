@@ -13,7 +13,7 @@ public:
 	FRelay();
 	~FRelay();
 
-    std::string Act(const std::string& state);
+    std::string Act(char* ptr, size_t size);
 
 private:
 

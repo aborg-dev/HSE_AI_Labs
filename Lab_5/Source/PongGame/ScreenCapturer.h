@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include <vector>
 #include "ScreenCapturer.generated.h"
 
 UCLASS()
@@ -21,19 +22,14 @@ public:
     virtual void Tick( float DeltaSeconds ) override;
 
     UPROPERTY(EditAnywhere, Category = Screenshot)
-    TArray<uint8> Screenshot;
-
-    UPROPERTY(EditAnywhere, Category = Screenshot)
-    int Height;
-
-    UPROPERTY(EditAnywhere, Category = Screenshot)
-    int Width;
-
-    UPROPERTY(EditAnywhere, Category = Screenshot)
     float ScreenshotPeriod;
 
+    std::vector<char> Screenshot;
+    int Height;
+    int Width;
+
 private:
-    bool CaptureScreenshot(TArray<uint8>* data);
+    bool CaptureScreenshot(std::vector<char>* data);
 
     float ScreenshotTimer;
 

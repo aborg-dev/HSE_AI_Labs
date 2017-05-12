@@ -17,9 +17,9 @@ FRelay::~FRelay()
 {
 }
 
-std::string FRelay::Act(const std::string& state)
+std::string FRelay::Act(char* ptr, size_t size)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Sending %d bytes..."), state.length());
+    UE_LOG(LogTemp, Warning, TEXT("Sending %d bytes..."), size);
 
     host = "localhost";
     asio::io_service io_service;
@@ -32,10 +32,12 @@ std::string FRelay::Act(const std::string& state)
     tcp::socket socket(io_service);
     asio::connect(socket, endpoint_iterator);
 
+    UE_LOG(LogTemp, Warning, TEXT("Going into loop"));
+
     for (;;) {
         asio::error_code error;
 
-        size_t out_len = socket.write_some(asio::buffer(state), error);
+        size_t out_len = socket.write_some(asio::buffer(ptr, size), error);
         UE_LOG(LogTemp, Warning, TEXT("Sent %d bytes"), out_len);
 
         if (error) {
@@ -55,5 +57,5 @@ std::string FRelay::Act(const std::string& state)
         return std::string(buf.begin(), buf.begin() + in_len);
     }
 
-    return state;
+    return "";
 }
