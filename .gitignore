@@ -59,6 +59,7 @@
 **/Content/*
 !**/Content/GameContent
 !**/Lab_4/Content/*
+!**/Lab_5/Content/*
 
 # Mac Artifacts
 .DS_Store
