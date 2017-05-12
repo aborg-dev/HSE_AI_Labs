@@ -4,6 +4,8 @@
 #include "Paddle.h"
 #include "RemotePaddleController.h"
 
+#include <msgpack.hpp>
+#include <sstream>
 
 
 ARemotePaddleController::ARemotePaddleController()
@@ -29,11 +31,33 @@ void ARemotePaddleController::Tick(float DeltaTime)
         return;
     }
 
-    TotalTime += DeltaTime;
-    while (TotalTime > 1) {
-        TotalTime -= 2;
-    }
-    paddle->MovementDirection = TotalTime;
+    paddle->MovementDirection = Communicate(paddle);
+}
 
-    Relay.Tick();
+Action ARemotePaddleController::Communicate(const State& state) {
+    int EpisodeStep = state->GameMode->EpisodeStep;
+    int CpuScore = state->GameMode->CpuScore;
+    int PlayerScore = state->GameMode->PlayerScore;
+
+    try {
+        msgpack::type::tuple<int, int, int> src(EpisodeStep, CpuScore, PlayerScore);
+        std::stringstream buffer;
+        msgpack::pack(buffer, src);
+
+        auto action = relay.Act(buffer.str());
+
+        msgpack::object_handle oh = msgpack::unpack(action.data(), action.size());
+        msgpack::object deserialized = oh.get();
+        float dst;
+        deserialized.convert(dst);
+
+        UE_LOG(LogTemp, Warning, TEXT("Deserialized value: %f"), dst);
+
+        return dst;
+    } catch (std::exception& e) {
+        FString message(e.what());
+        UE_LOG(LogTemp, Warning, TEXT("Caught an exception: %s"), *message);
+
+        return 0.0;
+    }
 }

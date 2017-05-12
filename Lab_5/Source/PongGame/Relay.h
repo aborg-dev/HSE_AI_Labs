@@ -13,9 +13,7 @@ public:
 	FRelay();
 	~FRelay();
 
-    void Tick();
-
-    TArray<uint8> Act(const TArray<uint8>& state);
+    std::string Act(const std::string& state);
 
 private:
 

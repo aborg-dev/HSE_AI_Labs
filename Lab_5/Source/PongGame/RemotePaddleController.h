@@ -6,6 +6,9 @@
 #include "Relay.h"
 #include "RemotePaddleController.generated.h"
 
+using Action = double;
+using State = APaddle*;
+
 /**
  * 
  */
@@ -24,8 +27,8 @@ public:
 
 private:
 
-    float TotalTime = -1;
+    Action Communicate(const State& state);
 
-    FRelay Relay;
+    FRelay relay;
 
 };
