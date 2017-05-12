@@ -20,6 +20,11 @@ public class PongGame : ModuleRules
         get { return Path.Combine( ThirdPartyPath, "msgpack-c", "include" ); }
     }
 
+    private string AsioPath
+    {
+        get { return Path.Combine( ThirdPartyPath, "asio", "include" ); }
+    }
+
 	public PongGame(TargetInfo Target)
 	{
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "RenderCore", "ShaderCore" });
@@ -34,6 +39,9 @@ public class PongGame : ModuleRules
 
         System.Console.WriteLine("Adding include path for msgpack: " + MsgPackPath);
         PublicIncludePaths.Add(MsgPackPath);
+
+        System.Console.WriteLine("Adding include path for asio: " + AsioPath);
+        PublicIncludePaths.Add(AsioPath);
 		
 		// Uncomment if you are using online features
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");

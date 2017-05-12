@@ -2,6 +2,7 @@
 
 #include "PongGame.h"
 #include "Relay.h"
+#include <asio.hpp>
 
 FRelay::FRelay()
 {
