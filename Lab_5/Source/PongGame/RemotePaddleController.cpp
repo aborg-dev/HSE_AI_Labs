@@ -6,6 +6,7 @@
 
 #include <msgpack.hpp>
 #include <sstream>
+#include <stdint.h>
 
 
 ARemotePaddleController::ARemotePaddleController()
@@ -34,6 +35,18 @@ void ARemotePaddleController::Tick(float DeltaTime)
     paddle->MovementDirection = Communicate(paddle);
 }
 
+template <typename It>
+int decode_dir(It begin, It end) {
+    int res = 0;
+    int base = 1 << 8;
+    while (begin != end) {
+        res *= base;
+        res += *begin;
+        ++begin;
+    }
+    return res - 1;
+}
+
 struct Message
 {
     int episodeStep;
@@ -43,7 +56,7 @@ struct Message
     int height;
     int width;
 
-    std::vector<char> screen;
+    std::vector<uint8_t> screen;
 
     MSGPACK_DEFINE(episodeStep, cpuScore, playerScore, height, width, screen);
 };
@@ -71,13 +84,12 @@ Action ARemotePaddleController::Communicate(const State& state) {
 
         auto action = relay.Act(sbuf.data(), sbuf.size());
 
-        msgpack::object_handle oh = msgpack::unpack(action.data(), action.size());
-        msgpack::object deserialized = oh.get();
+        int dst = decode_dir(action.begin(), action.end());
 
-        float dst;
-        deserialized.convert(dst);
+        //msgpack::object_handle oh = msgpack::unpack(action.data(), action.size());
+        //msgpack::object deserialized = oh.get();
 
-        UE_LOG(LogTemp, Warning, TEXT("Deserialized value: %f"), dst);
+        //deserialized.convert(dst);
 
         return dst;
     } catch (std::exception& e) {

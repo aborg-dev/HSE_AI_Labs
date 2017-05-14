@@ -44,7 +44,7 @@ void AScreenCapturer::Tick( float DeltaTime )
  * @param data a float array, filled with the screenshot data in [Y,X,color] order.
  * @returns true if successful
  */
-bool AScreenCapturer::CaptureScreenshot(std::vector<char>* data)
+bool AScreenCapturer::CaptureScreenshot(std::vector<uint8_t>* data)
 {
     FlushRenderingCommands();
 
@@ -91,7 +91,7 @@ bool AScreenCapturer::CaptureScreenshot(std::vector<char>* data)
         Height = X;
         Width = Y;
 
-        char* values = data->data();
+        uint8_t* values = data->data();
         for (const FColor& color : Bitmap) {
             *values++ = color.R;
         }

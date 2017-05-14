@@ -4,6 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include <vector>
+#include <stdint.h>
 #include "ScreenCapturer.generated.h"
 
 UCLASS()
@@ -24,12 +25,12 @@ public:
     UPROPERTY(EditAnywhere, Category = Screenshot)
     float ScreenshotPeriod;
 
-    std::vector<char> Screenshot;
+    std::vector<uint8_t> Screenshot;
     int Height;
     int Width;
 
 private:
-    bool CaptureScreenshot(std::vector<char>* data);
+    bool CaptureScreenshot(std::vector<uint8_t>* data);
 
     float ScreenshotTimer;
 

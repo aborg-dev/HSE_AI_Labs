@@ -1,6 +1,20 @@
 import socketserver
 import msgpack
 import time
+import struct
+import logging
+import sys
+
+import controller
+
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+root.addHandler(ch)
 
 start = time.time()
 handled = 0
@@ -18,22 +32,57 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     """
 
     def handle(self):
-        # self.request is the TCP socket connected to the client
-        self.data = self.request.recv(100000).strip()
-        print("{} wrote {} bytes".format(self.client_address[0], len(self.data)))
-        unpacked = msgpack.unpackb(self.data)
-        print("Unpacked data length: {}".format(len(unpacked)))
-        print("Screen data length: {}".format(len(unpacked[5])))
-        # print("Unpacked data: {}".format(unpacked))
-        # just send back the same data, but upper-cased
-        response = msgpack.packb(-1.0)
-        self.request.sendall(response)
+        py_controller = controller.PythonAIController()
+        py_controller.begin_play()
 
-        global start
-        global handled
+        while True:
+            # self.request is the TCP socket connected to the client
+            data_size_buf = self.request.recv(4).strip()
+            data_size = struct.unpack('i', data_size_buf)[0]
 
-        handled += 1
-        print(handled / (time.time() - start))
+            self.data = bytearray()
+            to_read = data_size
+            while to_read > 0:
+                data = self.request.recv(to_read).strip()
+                self.data.extend(data)
+                to_read -= len(data)
+
+            # print(len(self.data), data_size)
+            # logging.info("{} wrote {} bytes".format(self.client_address[0], len(self.data)))
+            unpacked = None
+            try:
+                unpacked = msgpack.unpackb(self.data)
+                # logging.info("Unpacked data length: {}".format(len(unpacked)))
+                # logging.info("Screen data length: {}".format(len(unpacked[5])))
+                # print("Unpacked data: {}".format(unpacked))
+            except Exception as e:
+                logging.info(e)
+
+            def get_dir_enc(value):
+                return value + 1
+
+            direction = 0
+            if unpacked:
+                direction = py_controller.tick(
+                        unpacked[0],
+                        unpacked[1],
+                        unpacked[2],
+                        unpacked[3],
+                        unpacked[4],
+                        unpacked[5])
+
+            enc_direction = get_dir_enc(direction)
+            # response = msgpack.packb(direction)
+            response = struct.pack('c', enc_direction.to_bytes(1, byteorder="big"))
+            # logging.info("Sending {} bytes".format(len(response)))
+            self.request.sendall(response)
+
+            global start
+            global handled
+
+            handled += 1
+            if handled % 1000 == 0:
+                logging.info(handled / (time.time() - start))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 6000

@@ -1,8 +1,8 @@
 import sys
 import time
 import os
+import logging
 
-import unreal_engine as ue
 import numpy as np
 import tensorflow as tf
 
@@ -13,7 +13,7 @@ ACTIONS = 3  # number of valid actions
 # Experiment description.
 GAME = "pong"
 MODEL = "dqn"
-VERSION = 3  # Bump this for each new experiment.
+VERSION = 5  # Bump this for each new experiment.
 
 EXPERIMENT_PATH = os.path.join("/home/acid", GAME, MODEL, str(VERSION))
 # "/home/acid/Repos/HSE_AI_Labs/Lab_4/saved_networks"  # path to saved models
@@ -41,22 +41,6 @@ config = {
     "experiment_path": EXPERIMENT_PATH,
 }
 
-class UnrealEngineOutput:
-    def __init__(self, logger):
-        self.logger = logger
-
-    def write(self, buf):
-        self.logger(buf)
-
-    def flush(self):
-        return
-
-
-sys.stdout = UnrealEngineOutput(ue.log)
-sys.stderr = UnrealEngineOutput(ue.log_error)
-
-ue.log("Python version: ".format(sys.version))
-
 
 class Score(object):
     def __init__(self, cpu_score, player_score):
@@ -83,7 +67,7 @@ class PythonAIController(object):
 
     # Called at the started of the game
     def begin_play(self):
-        ue.log("Begin Play on PythonAIController class")
+        logging.info("Begin Play on PythonAIController class")
         np.random.seed(SEED)
         tf.set_random_seed(SEED)
         self.current_score = Score(0, 0)
@@ -97,19 +81,9 @@ class PythonAIController(object):
             return 0
         return game_mode.Ball_Ref.get_actor_location().z
 
-    def get_screen(self, game_mode):
-        if not game_mode:
-            return None
-
-        screen_capturer = game_mode.ScreenCapturer
-        screenshot = np.array(screen_capturer.Screenshot, dtype=np.uint8)
-        H = screen_capturer.Height
-        W = screen_capturer.Width
-
-        if len(screenshot) == 0:
-            return None
-
-        return screenshot.reshape((H, W, 3), order='F').swapaxes(0, 1)
+    def get_screen(self, screenshot, height, width):
+        screenshot = np.frombuffer(screenshot, dtype=np.uint8)
+        return screenshot.reshape((height, width, 3), order='F').swapaxes(0, 1)
 
     def get_score(self, game_mode):
         if not game_mode:
@@ -117,16 +91,16 @@ class PythonAIController(object):
         return (game_mode.Cpu_Score, game_mode.Player_Score)
 
     # Called periodically during the game.
-    def tick(self, delta_seconds: float):
+    def tick(self, step, cpu_score, player_score, height, width, screenshot):
         start_time = time.clock()
 
-        pawn = self.uobject.GetPawn()
-        game_mode = pawn.GameMode
-        score = self.get_score(game_mode)
+        # pawn = self.uobject.GetPawn()
+        # game_mode = pawn.GameMode
+        score = (cpu_score, player_score)
 
         # Attribute this to previous action.
         reward, is_terminal = self.current_score.update(score)
-        screen = self.get_screen(pawn.GameMode)
+        screen = self.get_screen(screenshot, height, width)
 
         # Skip frames when no screen is available.
         if screen is None or len(screen) == 0:
@@ -136,7 +110,7 @@ class PythonAIController(object):
 
         # Make new action.
         action = self.trainer.act()
-        pawn.MovementDirection = get_action_direction(action)
+        result = get_action_direction(action)
 
         self.step_count += 1
         if self.step_count % SNAPSHOT_PERIOD == 0:
@@ -146,4 +120,6 @@ class PythonAIController(object):
         finish_time = time.clock()
         elapsed = finish_time - start_time
         if LOG_TIMINGS:
-            ue.log("Delta seconds: {}, time elapsed: {}".format(delta_seconds, elapsed))
+            logging.info("Delta seconds: {}, time elapsed: {}".format(delta_seconds, elapsed))
+
+        return result
