@@ -66,22 +66,14 @@ Action ARemotePaddleController::Communicate(const State& state) {
     message.screen = screenshot;
 
     try {
-        UE_LOG(LogTemp, Warning, TEXT("Packing message"));
-
-        //std::vector<int> v(10000, 3);
-        //msgpack::pack(sbuf, v);
         msgpack::sbuffer sbuf;
         msgpack::pack(sbuf, message);
-        UE_LOG(LogTemp, Warning, TEXT("Message packed"));
 
         auto action = relay.Act(sbuf.data(), sbuf.size());
 
-        UE_LOG(LogTemp, Warning, TEXT("Unpacking message"));
         msgpack::object_handle oh = msgpack::unpack(action.data(), action.size());
         msgpack::object deserialized = oh.get();
-        UE_LOG(LogTemp, Warning, TEXT("Message unpacked"));
 
-        UE_LOG(LogTemp, Warning, TEXT("Converting to float"));
         float dst;
         deserialized.convert(dst);
 
@@ -89,7 +81,6 @@ Action ARemotePaddleController::Communicate(const State& state) {
 
         return dst;
     } catch (std::exception& e) {
-        UE_LOG(LogTemp, Warning, TEXT("Exceptional situation!"));
         FString error_message(e.what());
         UE_LOG(LogTemp, Warning, TEXT("Caught an exception: %s"), *error_message);
 

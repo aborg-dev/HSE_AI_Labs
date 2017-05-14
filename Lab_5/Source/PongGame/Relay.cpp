@@ -32,8 +32,6 @@ std::string FRelay::Act(char* ptr, size_t size)
     tcp::socket socket(io_service);
     asio::connect(socket, endpoint_iterator);
 
-    UE_LOG(LogTemp, Warning, TEXT("Going into loop"));
-
     for (;;) {
         asio::error_code error;
 

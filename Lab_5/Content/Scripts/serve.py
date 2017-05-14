@@ -1,5 +1,9 @@
 import socketserver
 import msgpack
+import time
+
+start = time.time()
+handled = 0
 
 class MyServer(socketserver.TCPServer):
     allow_reuse_address = True
@@ -24,6 +28,12 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         # just send back the same data, but upper-cased
         response = msgpack.packb(-1.0)
         self.request.sendall(response)
+
+        global start
+        global handled
+
+        handled += 1
+        print(handled / (time.time() - start))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 6000
