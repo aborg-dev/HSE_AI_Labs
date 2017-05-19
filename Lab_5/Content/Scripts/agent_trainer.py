@@ -29,7 +29,11 @@ def transformImage(image):
 class AgentTrainer(object):
     def __init__(self, config):
         # Create session to store trained parameters
-        self.session = tf.Session()
+        self.session = tf.Session(config=tf.ConfigProto(
+            device_count={"CPU":6},
+            inter_op_parallelism_threads=1,
+            intra_op_parallelism_threads=1,
+            ))
 
         # Create and configure logging directories and file handles.
         experiment_path = config["experiment_path"]

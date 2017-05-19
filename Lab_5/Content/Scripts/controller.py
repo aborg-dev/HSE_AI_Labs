@@ -35,7 +35,7 @@ config = {
     "final_epsilon": 0.0001,  # final value of epsilon
     "replay_memory_size": 100000,  # number of previous transitions to remember
     "match_memory_size": 1000,  # number of previous matches to remember
-    "batch_size": 256,  # size of minibatch
+    "batch_size": 64,  # size of minibatch
     "frame_per_action": 1,  # ammount of frames that are skipped before every action
     "log_period": 100,  # periodicity of logging
     "experiment_path": EXPERIMENT_PATH,
