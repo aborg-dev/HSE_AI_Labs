@@ -13,7 +13,7 @@ using asio::ip::tcp;
 
 FRelay::FRelay()
 {
-    host = "localhost";
+    //host = "localhost";
     port = 6000;
     connected = false;
 }
@@ -37,9 +37,23 @@ void Connection::create(std::string host, int port) {
     asio::connect(*socket, *endpoint_iterator);
 }
 
+void Server::create(int port) {
+    socket.reset();
+    acceptor.reset();
+    io_service.reset();
+
+    io_service = std::make_unique<asio::io_service>();
+    acceptor = std::make_unique<asio::ip::tcp::acceptor>(
+        *io_service, tcp::endpoint(tcp::v4(), port));
+    socket = std::make_unique<tcp::socket>(*io_service);
+
+    acceptor->accept(*socket);
+}
+
 void FRelay::Connect()
 {
-    connection.create(host, port);
+    //connection.create(host, port);
+    server.create(port);
 }
 
 std::array<char, 4> int_to_buf(int v) {
@@ -64,13 +78,13 @@ ActionType FRelay::Act(char* ptr, size_t size)
     try {
         asio::error_code error;
         auto len_buf = int_to_buf(size);
-        size_t out_len = connection.socket->write_some(asio::buffer(len_buf), error);
+        size_t out_len = server.socket->write_some(asio::buffer(len_buf), error);
         if (out_len != 4 || error) {
             throw asio::system_error(error);
         }
 
-        //size_t out_len = connection.socket->write_some(asio::buffer(size), error);
-        out_len = connection.socket->write_some(asio::buffer(ptr, size), error);
+        //size_t out_len = server.socket->write_some(asio::buffer(size), error);
+        out_len = server.socket->write_some(asio::buffer(ptr, size), error);
         //UE_LOG(LogTemp, Warning, TEXT("Sent %d bytes"), out_len);
 
         if (error) {
@@ -80,7 +94,7 @@ ActionType FRelay::Act(char* ptr, size_t size)
         std::array<uint8_t, ACTION_SIZE> buf;
         int retries = 5;
         while (true) {
-            size_t in_len = asio::read(*connection.socket, asio::buffer(buf), asio::transfer_exactly(ACTION_SIZE), error);
+            size_t in_len = asio::read(*server.socket, asio::buffer(buf), asio::transfer_exactly(ACTION_SIZE), error);
             //UE_LOG(LogTemp, Warning, TEXT("Read %d bytes"), in_len);
 
             if (in_len == ACTION_SIZE) {
