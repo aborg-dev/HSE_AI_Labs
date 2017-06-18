@@ -19,4 +19,5 @@ Repository for HSE AI class labs
 * Lab_1: Single AI controller for optimizing pizza delivery
 * Lab_2: Cooperative pizza delivery system
 * Lab_3: Cooperative maze solving
-* Lab_4: Training TensorFlow RL model to play Pong in UE4
+* Lab_4: Training TensorFlow RL model to play Pong in UE4 using UnrealEnginePython
+* Lab_5: Training TensorFlow RL model to play Pong in UE4 using Boost.Asio
