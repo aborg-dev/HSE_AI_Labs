@@ -13,7 +13,7 @@ ACTIONS = 3  # number of valid actions
 # Experiment description.
 GAME = "pong"
 MODEL = "dqn"
-VERSION = 3  # Bump this for each new experiment.
+VERSION = 4  # Bump this for each new experiment.
 
 EXPERIMENT_PATH = os.path.join("/home/acid", GAME, MODEL, str(VERSION))
 # "/home/acid/Repos/HSE_AI_Labs/Lab_4/saved_networks"  # path to saved models
@@ -24,7 +24,7 @@ SNAPSHOT_PERIOD = 10000  # periodicity of saving current model
 SEED = 42
 
 # Logging.
-LOG_TIMINGS = False  # Whether to log controller speed on every tick
+LOG_TIMINGS = True  # Whether to log controller speed on every tick
 
 config = {
     "action_count": ACTIONS,
@@ -35,7 +35,7 @@ config = {
     "final_epsilon": 0.0001,  # final value of epsilon
     "replay_memory_size": 100000,  # number of previous transitions to remember
     "match_memory_size": 1000,  # number of previous matches to remember
-    "batch_size": 256,  # size of minibatch
+    "batch_size": 128,  # size of minibatch
     "frame_per_action": 1,  # ammount of frames that are skipped before every action
     "log_period": 100,  # periodicity of logging
     "experiment_path": EXPERIMENT_PATH,

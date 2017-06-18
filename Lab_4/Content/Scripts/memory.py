@@ -14,7 +14,7 @@ class ExperienceMemory(object):
             self.memory.popleft()
 
     def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
+        return random.sample(self.memory, min(len(self.memory), batch_size))
 
 
 class MatchResults(object):
