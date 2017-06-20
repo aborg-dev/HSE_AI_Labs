@@ -16,44 +16,24 @@ FRelay::FRelay()
     //host = "localhost";
     port = 6000;
     connected = false;
+    serverCreated = false;
 }
 
 FRelay::~FRelay()
 {
 }
 
-void Connection::create(std::string host, int port) {
-    socket.reset();
-    endpoint_iterator.reset();
-    query.reset();
-    resolver.reset();
-    io_service.reset();
-
-    io_service = std::make_unique<asio::io_service>();
-    resolver = std::make_unique<tcp::resolver>(*io_service);
-    query = std::make_unique<tcp::resolver::query>(host, std::to_string(port));
-    endpoint_iterator = std::make_unique<tcp::resolver::iterator>(resolver->resolve(*query));
-    socket = std::make_unique<tcp::socket>(*io_service);
-    asio::connect(*socket, *endpoint_iterator);
-}
-
 void Server::create(int port) {
-    socket.reset();
-    acceptor.reset();
+    tcp_server.reset();
     io_service.reset();
 
     io_service = std::make_unique<asio::io_service>();
-    acceptor = std::make_unique<asio::ip::tcp::acceptor>(
-        *io_service, tcp::endpoint(tcp::v4(), port));
-    socket = std::make_unique<tcp::socket>(*io_service);
-
-    acceptor->accept(*socket);
+    tcp_server = std::make_unique<TcpServer>(*io_service, port);
 }
 
-void FRelay::Connect()
+void FRelay::TryConnect()
 {
-    //connection.create(host, port);
-    server.create(port);
+    server.io_service->poll();
 }
 
 std::array<char, 4> int_to_buf(int v) {
@@ -68,23 +48,36 @@ std::array<char, 4> int_to_buf(int v) {
 
 ActionType FRelay::Act(char* ptr, size_t size)
 {
+    if (!serverCreated) {
+        // We can't do this in constructor because it's evaluated even before
+        // the start of the game.
+        server.create(port);
+        serverCreated = true;
+        server.tcp_server->start_accept();
+    }
+
     if (!connected) {
-        Connect();
+        TryConnect();
+        if (!server.tcp_server->connected) {
+            throw std::logic_error("No clients accepted.");
+        }
         connected = true;
     }
+
+    auto& socket = server.tcp_server->current_connection_->socket_;
 
     //UE_LOG(LogTemp, Warning, TEXT("Sending %d bytes..."), size);
 
     try {
         asio::error_code error;
         auto len_buf = int_to_buf(size);
-        size_t out_len = server.socket->write_some(asio::buffer(len_buf), error);
+        size_t out_len = socket.write_some(asio::buffer(len_buf), error);
         if (out_len != 4 || error) {
             throw asio::system_error(error);
         }
 
-        //size_t out_len = server.socket->write_some(asio::buffer(size), error);
-        out_len = server.socket->write_some(asio::buffer(ptr, size), error);
+        //size_t out_len = socket.write_some(asio::buffer(size), error);
+        out_len = socket.write_some(asio::buffer(ptr, size), error);
         //UE_LOG(LogTemp, Warning, TEXT("Sent %d bytes"), out_len);
 
         if (error) {
@@ -94,7 +87,7 @@ ActionType FRelay::Act(char* ptr, size_t size)
         std::array<uint8_t, ACTION_SIZE> buf;
         int retries = 5;
         while (true) {
-            size_t in_len = asio::read(*server.socket, asio::buffer(buf), asio::transfer_exactly(ACTION_SIZE), error);
+            size_t in_len = asio::read(*socket, asio::buffer(buf), asio::transfer_exactly(ACTION_SIZE), error);
             //UE_LOG(LogTemp, Warning, TEXT("Read %d bytes"), in_len);
 
             if (in_len == ACTION_SIZE) {
