@@ -88,7 +88,7 @@ ActionType FRelay::Act(char* ptr, size_t size)
         std::array<uint8_t, ACTION_SIZE> buf;
         int retries = 5;
         while (true) {
-            size_t in_len = asio::read(*socket, asio::buffer(buf), asio::transfer_exactly(ACTION_SIZE), error);
+            size_t in_len = asio::read(socket, asio::buffer(buf), asio::transfer_exactly(ACTION_SIZE), error);
             //UE_LOG(LogTemp, Warning, TEXT("Read %d bytes"), in_len);
 
             if (in_len == ACTION_SIZE) {

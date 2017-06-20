@@ -57,13 +57,13 @@ public:
         : acceptor_(io_service, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port))
     { }
 
-private:
+//private:
     void start_accept()
     {
-        TcpConnection::pointer current_connection_ =
+        TcpConnection::pointer new_connection =
             TcpConnection::create(acceptor_.get_io_service());
 
-        acceptor_.async_accept(current_connection_->socket(),
+        acceptor_.async_accept(new_connection->socket(),
                 std::bind(&TcpServer::handle_accept, this, new_connection,
                     std::placeholders::_1));
     }
@@ -71,7 +71,8 @@ private:
     void handle_accept(TcpConnection::pointer new_connection, const asio::error_code& error)
     {
         if (!error) {
-            new_connection->start();
+            current_connection_ = new_connection;
+            current_connection_->start();
             connected = true;
         } else {
             connected = false;
