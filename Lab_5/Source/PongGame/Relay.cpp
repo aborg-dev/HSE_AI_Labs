@@ -34,6 +34,7 @@ void Server::create(int port) {
 void FRelay::TryConnect()
 {
     server.io_service->poll();
+    server.io_service->reset();
 }
 
 std::array<char, 4> int_to_buf(int v) {
@@ -64,7 +65,7 @@ ActionType FRelay::Act(char* ptr, size_t size)
         connected = true;
     }
 
-    auto& socket = server.tcp_server->current_connection_->socket_;
+    auto& socket = server.tcp_server->current_connection_->socket();
 
     //UE_LOG(LogTemp, Warning, TEXT("Sending %d bytes..."), size);
 
@@ -113,6 +114,7 @@ ActionType FRelay::Act(char* ptr, size_t size)
 
     } catch (std::exception& e) {
         connected = false;
+        server.tcp_server->start_accept();
         FString error_message(e.what());
         UE_LOG(LogTemp, Warning, TEXT("Caught an exception: %s"), *error_message);
 
