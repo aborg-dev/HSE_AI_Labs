@@ -13,6 +13,9 @@ from os import path
 from _policies import BinaryActionLinearPolicy # Different file so it can be unpickled
 import argparse
 
+import env as remote_env
+
+
 def cem(f, th_mean, batch_size, n_iter, elite_frac, initial_std=1.0):
     """
     Generic implementation of the cross-entropy method for maximizing a black-box function
@@ -52,10 +55,14 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--display', action='store_true')
-    parser.add_argument('target', nargs="?", default="CartPole-v0")
+    # parser.add_argument('target', nargs="?", default="CartPole-v0")
     args = parser.parse_args()
 
-    env = gym.make(args.target)
+    host = 'localhost'
+    port = 6000
+
+    # env = gym.make(args.target)
+    env = remote_env.PongEnv(host, port)
     env.seed(0)
     np.random.seed(0)
     params = dict(n_iter=10, batch_size=25, elite_frac = 0.2)
@@ -65,7 +72,7 @@ if __name__ == '__main__':
     # directory, but can't contain previous monitor results. You can
     # also dump to a tempdir if you'd like: tempfile.mkdtemp().
     outdir = '/tmp/cem-agent-results'
-    env = wrappers.Monitor(env, outdir, force=True)
+    # env = wrappers.Monitor(env, outdir, force=True)
 
     # Prepare snapshotting
     # ----------------------------------------
@@ -74,7 +81,7 @@ if __name__ == '__main__':
     info = {}
     info['params'] = params
     info['argv'] = sys.argv
-    info['env_id'] = env.spec.id
+    # info['env_id'] = env.spec.id
     # ------------------------------------------
 
     def noisy_evaluation(theta):
@@ -88,7 +95,7 @@ if __name__ == '__main__':
         print('Iteration %2i. Episode mean reward: %7.3f'%(i, iterdata['y_mean']))
         agent = BinaryActionLinearPolicy(iterdata['theta_mean'])
         if args.display: do_rollout(agent, env, 200, render=True)
-        writefile('agent-%.4i.pkl'%i, str(pickle.dumps(agent, -1)))
+        # writefile('agent-%.4i.pkl'%i, str(pickle.dumps(agent, -1)))
 
     # Write out the env at the end so we store the parameters of this
     # environment.
