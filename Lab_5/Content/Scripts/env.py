@@ -112,15 +112,28 @@ class PongEnv(RemoteEnv):
         W = 240
         D = 3
         self.observation_space = spaces.Box(low=0, high=255, shape=(H, W, D))
+
         # A tuple corresponding to the min and max possible rewards
         # reward_range
         reward_range = (-np.inf, np.inf)
+
+        # Current scores of players.
+        self.cpu_score = None
+        self.player_score = None
 
     def _decode_game_state(self, message):
         step, cpu_score, player_score, height, width, screen = message
         screen = np.frombuffer(screen, dtype=np.uint8)
         screen = screen.reshape((height, width, 3), order='F').swapaxes(0, 1)
-        return screen, 0, 0
+
+        reward = 0
+        if self.cpu_score and self.player_score:
+            reward = (player_score - self.player_score) - (cpu_score - self.cpu_score)
+
+        self.cpu_score = cpu_score
+        self.player_score = player_score
+
+        return screen, reward, reward != 0
 
     def _reset(self):
         """Resets the state of the environment and returns an initial observation.
