@@ -3,6 +3,7 @@ import socket
 import struct
 import logging
 import msgpack
+import scipy.misc
 
 import gym
 from gym import error, spaces, utils
@@ -50,6 +51,7 @@ class RemoteEnv(gym.Env):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, host, port):
+        self.spec = None
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
 
@@ -74,11 +76,11 @@ class RemoteEnv(gym.Env):
             info (dict): contains auxiliary diagnostic information (helpful for debugging,
                 and sometimes learning).
         """
+        # print('Action: {}'.format(action))
         _send_data(self.sock, action)
         message = _receive_data(self.sock)
         observation, reward, done = self._decode_game_state(message)
-        logging.info("Observation len: %s", len(observation))
-        return (observation, reward, done, None)
+        return (observation, reward, done, {})
 
     def _render(self, mode='human', close=False):
         pass
@@ -92,7 +94,8 @@ class RemoteEnv(gym.Env):
         Returns:
             observation (object): the initial observation of the space.
         """
-        observation = _receive_data(self.sock)
+        message = _receive_data(self.sock)
+        observation, reward, done = self._decode_game_state(message)
         return observation
 
 
@@ -105,9 +108,9 @@ class PongEnv(RemoteEnv):
         # The Space object corresponding to valid actions
         self.action_space = spaces.Discrete([-1, 0, 1])
         # The Space object corresponding to valid observations
-        H = 80
-        W = 80
-        D = 1
+        H = 120
+        W = 240
+        D = 3
         self.observation_space = spaces.Box(low=0, high=255, shape=(H, W, D))
         # A tuple corresponding to the min and max possible rewards
         # reward_range
@@ -118,3 +121,69 @@ class PongEnv(RemoteEnv):
         screen = np.frombuffer(screen, dtype=np.uint8)
         screen = screen.reshape((height, width, 3), order='F').swapaxes(0, 1)
         return screen, 0, 0
+
+    def _reset(self):
+        """Resets the state of the environment and returns an initial observation.
+
+        Returns:
+            observation (object): the initial observation of the space.
+        """
+        _send_data(self.sock, 0)
+        message = _receive_data(self.sock)
+        observation, reward, done = self._decode_game_state(message)
+        return observation
+
+
+class FilteredEnv(gym.Env):
+    def __init__(self, env, ob_filter, rew_filter):
+        self.env = env
+        # copy over relevant parts of the child env
+        self.spec = self.env.spec
+        self.metadata = self.env.metadata
+        self.action_space = self.env.action_space
+        ob_space = self.env.observation_space
+        shape = ob_filter.output_shape(ob_space)
+        self.observation_space = spaces.Box(-np.inf, np.inf, shape)
+
+        self.ob_filter = ob_filter
+        self.rew_filter = rew_filter
+
+    def _step(self, ac):
+        ob, rew, done, info = self.env._step(ac)
+        nob = self.ob_filter(ob) if self.ob_filter else ob
+        nrew = self.rew_filter(rew) if self.rew_filter else rew
+        info["reward_raw"] = rew
+        return (nob, nrew, done, info)
+
+    def _reset(self):
+        ob = self.env.reset()
+        return self.ob_filter(ob) if self.ob_filter else ob
+
+    def _render(self, *args, **kw):
+        self.env.render(*args, **kw)
+
+
+def rgb2gray(rgb):
+    r, g, b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
+    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
+    return gray
+
+
+class RGBImageToVector(object):
+    def __init__(self, out_width=40, out_height=40):
+        self.out_width = out_width
+        self.out_height = out_height
+
+    def __call__(self, obs):
+        # obs is an M x N x 3 rgb image, want an (out_width x out_height,)
+        # vector
+
+        # nearly 2x faster to downsample then grayscale
+        downsample = scipy.misc.imresize(obs, (self.out_width, self.out_height, 3))
+        grayscale = rgb2gray(downsample)
+        flatten = grayscale.reshape(self.out_width * self.out_height)
+        return flatten
+
+    def output_shape(self, x):
+        return self.out_width * self.out_height
+

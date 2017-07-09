@@ -6,7 +6,8 @@ class BinaryActionLinearPolicy(object):
         self.b = theta[-1]
     def act(self, ob):
         y = ob.dot(self.w) + self.b
-        a = int(y < 0)
+        a = -1 if y < 0 else 1
+        # a = int(y < 0)
         return a
 
 class ContinuousActionLinearPolicy(object):
