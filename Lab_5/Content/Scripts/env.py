@@ -8,6 +8,7 @@ import scipy.misc
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
+from gym.envs.classic_control import rendering
 
 import numpy as np
 
@@ -54,6 +55,7 @@ class RemoteEnv(gym.Env):
         self.spec = None
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
+        self.last_observation = None
 
     def _seed(self, seed=None):
         pass
@@ -80,6 +82,7 @@ class RemoteEnv(gym.Env):
         _send_data(self.sock, action)
         message = _receive_data(self.sock)
         observation, reward, done = self._decode_game_state(message)
+        self.last_observation = observation
         return (observation, reward, done, {})
 
     def _render(self, mode='human', close=False):
@@ -96,10 +99,12 @@ class RemoteEnv(gym.Env):
         """
         message = _receive_data(self.sock)
         observation, reward, done = self._decode_game_state(message)
+        self.last_observation = observation
         return observation
 
 
 class PongEnv(RemoteEnv):
+    metadata = {'render.modes': ['human', 'rgb_array']}
 
     def __init__(self, host, port):
         # Initialize parent class.
@@ -120,6 +125,8 @@ class PongEnv(RemoteEnv):
         # Current scores of players.
         self.cpu_score = None
         self.player_score = None
+
+        self.viewer = None
 
     def _decode_game_state(self, message):
         step, cpu_score, player_score, height, width, screen = message
@@ -142,12 +149,25 @@ class PongEnv(RemoteEnv):
             observation (object): the initial observation of the space.
         """
         _send_data(self.sock, 0)
-        message = _receive_data(self.sock)
-        observation, reward, done = self._decode_game_state(message)
-        return observation
+        return super()._reset()
+
+    def _render(self, mode='human', close=False):
+        if close:
+            if self.viewer is not None:
+                self.viewer.close()
+                self.viewer = None
+            return
+
+        if self.viewer is None:
+            self.viewer = rendering.SimpleImageViewer()
+
+        if self.last_observation is not None:
+            return self.viewer.imshow(self.last_observation)
 
 
 class FilteredEnv(gym.Env):
+    metadata = {'render.modes': ['human', 'rgb_array']}
+
     def __init__(self, env, ob_filter, rew_filter):
         self.env = env
         # copy over relevant parts of the child env
@@ -172,8 +192,9 @@ class FilteredEnv(gym.Env):
         ob = self.env.reset()
         return self.ob_filter(ob) if self.ob_filter else ob
 
-    def _render(self, *args, **kw):
-        self.env.render(*args, **kw)
+    # def _render(self, *args, **kw):
+    def _render(self, mode='human', close=False):
+        self.env._render(mode=mode, close=close)
 
 
 def rgb2gray(rgb):
@@ -183,7 +204,7 @@ def rgb2gray(rgb):
 
 
 class RGBImageToVector(object):
-    def __init__(self, out_width=40, out_height=40):
+    def __init__(self, out_width=80, out_height=80):
         self.out_width = out_width
         self.out_height = out_height
 

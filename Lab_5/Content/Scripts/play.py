@@ -71,7 +71,6 @@ if __name__ == '__main__':
     rgb_filter = remote_env.RGBImageToVector()
     env = remote_env.FilteredEnv(env, rgb_filter, None)
 
-
     # You provide the directory to write to (can be an existing
     # directory, but can't contain previous monitor results. You can
     # also dump to a tempdir if you'd like: tempfile.mkdtemp().
