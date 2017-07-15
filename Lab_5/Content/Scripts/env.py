@@ -111,7 +111,7 @@ class PongEnv(RemoteEnv):
         super().__init__(host, port)
 
         # The Space object corresponding to valid actions
-        self.action_space = spaces.Discrete([-1, 0, 1])
+        self.action_space = spaces.Discrete(3)
         # The Space object corresponding to valid observations
         H = 120
         W = 240
@@ -127,6 +127,9 @@ class PongEnv(RemoteEnv):
         self.player_score = None
 
         self.viewer = None
+
+    def _step(self, action):
+        return super()._step(int(action) - 1)
 
     def _decode_game_state(self, message):
         step, cpu_score, player_score, height, width, screen = message
