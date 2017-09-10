@@ -13,7 +13,7 @@ from os import path
 from _policies import BinaryActionLinearPolicy # Different file so it can be unpickled
 import argparse
 
-import env as remote_env
+import remote_env
 
 
 def cem(f, th_mean, batch_size, n_iter, elite_frac, initial_std=1.0):

@@ -38,12 +38,8 @@ def _receive_data(sock):
         logging.info(e)
 
 
-def _send_data(sock, direction):
-    def get_dir_enc(value):
-        return value + 1
-
-    enc_direction = get_dir_enc(direction)
-    response = struct.pack('c', enc_direction.to_bytes(1, byteorder="big"))
+def _send_data(sock, action):
+    response = struct.pack('c', action.to_bytes(1, byteorder="big"))
     # logging.info("Sending {} bytes".format(len(response)))
     sock.sendall(response)
 
@@ -52,7 +48,6 @@ class RemoteEnv(gym.Env):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, host, port):
-        self.spec = None
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
         self.last_observation = None
@@ -129,7 +124,7 @@ class PongEnv(RemoteEnv):
         self.viewer = None
 
     def _step(self, action):
-        return super()._step(int(action) - 1)
+        return super()._step(int(action))
 
     def _decode_game_state(self, message):
         step, cpu_score, player_score, height, width, screen = message
@@ -174,7 +169,7 @@ class FilteredEnv(gym.Env):
     def __init__(self, env, ob_filter, rew_filter):
         self.env = env
         # copy over relevant parts of the child env
-        self.spec = self.env.spec
+        self._spec = self.env.spec
         self.metadata = self.env.metadata
         self.action_space = self.env.action_space
         ob_space = self.env.observation_space
