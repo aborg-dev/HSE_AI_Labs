@@ -98,6 +98,69 @@ class RemoteEnv(gym.Env):
         return observation
 
 
+class SimplePongEnv(RemoteEnv):
+    metadata = {'render.modes': ['human', 'rgb_array']}
+
+    def __init__(self, host, port):
+        # Initialize parent class.
+        super().__init__(host, port)
+
+        # The Space object corresponding to valid actions
+        self.action_space = spaces.Discrete(3)
+        # The Space object corresponding to valid observations
+        self.observation_space = spaces.Box(low=-1000, high=1000, shape=(8,))
+
+        # A tuple corresponding to the min and max possible rewards
+        # reward_range
+        reward_range = (-np.inf, np.inf)
+
+        # Current scores of players.
+        self.cpu_score = None
+        self.player_score = None
+
+        self.viewer = None
+
+    def _step(self, action):
+        return super()._step(int(action))
+
+    def _decode_game_state(self, message):
+        step, cpu_score, player_score, ball_pos, ball_vel, cpu_pos, player_pos, height, width, screen = message
+
+        reward = 0
+        if self.cpu_score and self.player_score:
+            reward = (player_score - self.player_score) - (cpu_score - self.cpu_score)
+
+        self.cpu_score = cpu_score
+        self.player_score = player_score
+
+        observation = np.array(ball_pos + ball_vel + cpu_pos + player_pos)
+        # print(observation)
+
+        return observation, reward, reward != 0
+
+    def _reset(self):
+        """Resets the state of the environment and returns an initial observation.
+
+        Returns:
+            observation (object): the initial observation of the space.
+        """
+        _send_data(self.sock, 0)
+        return super()._reset()
+
+    def _render(self, mode='human', close=False):
+        if close:
+            if self.viewer is not None:
+                self.viewer.close()
+                self.viewer = None
+            return
+
+        if self.viewer is None:
+            self.viewer = rendering.SimpleImageViewer()
+
+        if self.last_observation is not None:
+            return self.viewer.imshow(self.last_observation)
+
+
 class PongEnv(RemoteEnv):
     metadata = {'render.modes': ['human', 'rgb_array']}
 

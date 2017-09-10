@@ -59,17 +59,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     host = 'localhost'
-    port = 6000
+    port = 6002
 
     # env = gym.make(args.target)
-    env = remote_env.PongEnv(host, port)
+    # env = remote_env.PongEnv(host, port)
+    env = remote_env.SimplePongEnv(host, port)
     env.seed(0)
     np.random.seed(0)
     params = dict(n_iter=100, batch_size=25, elite_frac = 0.2)
     num_steps = 200
-
-    rgb_filter = remote_env.RGBImageToVector()
-    env = remote_env.FilteredEnv(env, rgb_filter, None)
 
     # You provide the directory to write to (can be an existing
     # directory, but can't contain previous monitor results. You can
