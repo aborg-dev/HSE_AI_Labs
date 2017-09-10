@@ -47,18 +47,35 @@ int decode_dir(It begin, It end) {
     return res - 1;
 }
 
-struct Message
-{
+struct Point {
+    Point(float x_, float y_): x(x_), y(y_) { }
+    Point(FVector2D v): Point(v.X, v.Y) { }
+    Point() { }
+
+    float x;
+    float y;
+
+    MSGPACK_DEFINE(x, y);
+};
+
+struct Message {
     int episodeStep;
     int cpuScore;
     int playerScore;
 
+    Point ballPosition;
+    Point ballSpeed;
+    Point cpuPosition;
+    Point playerPosition;
+
     int height;
     int width;
-
     std::vector<uint8_t> screen;
 
-    MSGPACK_DEFINE(episodeStep, cpuScore, playerScore, height, width, screen);
+    MSGPACK_DEFINE(
+            episodeStep, cpuScore, playerScore,
+            ballPosition, ballSpeed, cpuPosition, playerPosition,
+            height, width, screen);
 };
 
 Action ARemotePaddleController::Communicate(const State& state) {
@@ -74,6 +91,12 @@ Action ARemotePaddleController::Communicate(const State& state) {
     message.episodeStep = gameMode->EpisodeStep;
     message.cpuScore = gameMode->CpuScore;
     message.playerScore = gameMode->PlayerScore;
+
+    message.ballPosition = gameMode->BallPosition;
+    message.ballSpeed = gameMode->BallSpeed;
+    message.cpuPosition = gameMode->CpuPosition;
+    message.playerPosition = gameMode->PlayerPosition;
+
     message.height = gameMode->ScreenCapturer->Height;
     message.width = gameMode->ScreenCapturer->Width;
     message.screen = screenshot;

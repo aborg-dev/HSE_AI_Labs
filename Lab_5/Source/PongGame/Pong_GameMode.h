@@ -30,6 +30,18 @@ public:
     int PlayerScore;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
+    FVector2D BallPosition;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
+    FVector2D BallSpeed;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
+    FVector2D CpuPosition;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
+    FVector2D PlayerPosition;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
     AScreenCapturer* ScreenCapturer;
 
 };
