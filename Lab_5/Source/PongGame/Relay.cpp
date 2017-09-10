@@ -11,10 +11,16 @@
 
 using asio::ip::tcp;
 
+const int DEFAULT_PORT = 6000;
+
 FRelay::FRelay()
 {
-    //host = "localhost";
-    port = 6000;
+    if (FParse::Value(FCommandLine::Get(), TEXT("port"), port)) {
+        UE_LOG(LogTemp, Warning, TEXT("Parsed a port flag from command line: %d"), port);
+    } else {
+        UE_LOG(LogTemp, Warning, TEXT("Using default port: %d"), DEFAULT_PORT);
+        port = DEFAULT_PORT;
+    }
     connected = false;
     serverCreated = false;
 }
